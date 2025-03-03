@@ -57,6 +57,13 @@ if uploaded_file:
                 st.subheader("🏆 Performing **Standard ANOVA**")
                 anova = pg.anova(data=df.melt(var_name="Thesis", value_name="Value"), dv="Value", between="Thesis", detailed=True)
                 st.dataframe(anova, use_container_width=True)
+
+                # 📈 Dopo ANOVA, esegui sempre il test di Bonferroni se ci sono più di due gruppi
+                if num_groups > 2:
+                    st.subheader("📊 Performing **Bonferroni Post-Hoc Test**")
+                    bonferroni = pg.pairwise_ttests(data=df.melt(var_name="Thesis", value_name="Value"), dv="Value", between="Thesis", padjust="bonferroni")
+                    st.dataframe(bonferroni, use_container_width=True)
+
             else:
                 st.subheader("📈 Performing **Welch's ANOVA (for unequal variances)**")
                 welch_anova = pg.welch_anova(data=df.melt(var_name="Thesis", value_name="Value"), dv="Value", between="Thesis")
