@@ -8,5 +8,5 @@ def load_data(uploaded_file):
         df = df.dropna()  # Rimuove i valori mancanti
         return df
     except Exception as e:
-        st.error(f"❌ Errore nel caricamento del file: {e}")
+        st.error(f"❌ Error loading file: {e}")
         return None
