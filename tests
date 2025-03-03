@@ -3,7 +3,6 @@ import scipy.stats as stats
 import statsmodels.api as sm
 import statsmodels.stats.multicomp as mc
 import pingouin as pg
-from tabulate import tabulate
 
 def run_anova_tests(df):
     """Esegue ANOVA e test post-hoc sui dati forniti."""
@@ -34,3 +33,4 @@ def run_anova_tests(df):
     results["Test post-hoc di Games-Howell"] = games_howell
 
     return results
+
