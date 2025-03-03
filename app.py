@@ -3,8 +3,8 @@ import pandas as pd
 from data_loader import load_data
 from tests import run_anova_tests
 
-# 🌟 Nuovo titolo con carattere ridotto del 30%
-st.markdown("<h2 style='text-align: center; font-size: 70%;'>📊 Comparison Test Between Theses</h2>", unsafe_allow_html=True)
+# 🌟 Nuovo titolo con dimensione intermedia
+st.markdown("<h2 style='text-align: center; font-size: 85%;'>📊 Comparison Test Between Theses</h2>", unsafe_allow_html=True)
 
 # 📂 Caricamento del file nella barra laterale
 st.sidebar.header("⚙️ Settings")
@@ -26,7 +26,9 @@ if uploaded_file:
         # 📝 Mostra i risultati in Streamlit
         for test_name, result in results.items():
             st.subheader(test_name)
-            st.write(result)
+
+            # 📌 Adatta le tabelle alla larghezza della pagina
+            st.dataframe(result, use_container_width=True)
 
             # 📌 Mostra il commento interpretativo per ogni test
             if test_name in interpretations:
