@@ -3,16 +3,19 @@ import pandas as pd
 from data_loader import load_data
 from anova_analysis import run_anova_tests
 
-# 🎨 Titolo dell'app
-st.title("Analisi ANOVA con Test Post-Hoc")
+# 🌟 Titolo dell'app
+st.title("📊 Analisi ANOVA con Test Post-Hoc")
 
-# 📂 Caricamento del file .xlsx
-uploaded_file = st.file_uploader("Carica un file Excel (.xlsx)", type=["xlsx"])
+# 📂 Caricamento del file nella barra laterale
+st.sidebar.header("⚙️ Impostazioni")
+uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
 
+# 📌 Controllo se è stato caricato un file
 if uploaded_file:
     df = load_data(uploaded_file)  # 🔄 Carica i dati
     if df is not None:
-        st.write("📊 **Dati caricati:**", df.head())
+        st.write("✅ **Dati caricati con successo!**")
+        st.write(df.head())  # Mostra l'anteprima dei dati
 
         # 🏃‍♂️ Esegui i test
         results = run_anova_tests(df)
@@ -22,4 +25,4 @@ if uploaded_file:
             st.subheader(test_name)
             st.write(result)
 else:
-    st.warning("📂 Carica un file Excel per procedere.")
+    st.sidebar.warning("📂 Carica un file Excel per procedere.")
