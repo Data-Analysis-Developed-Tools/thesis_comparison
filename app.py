@@ -13,6 +13,29 @@ uploaded_file = st.sidebar.file_uploader("📂 Upload an Excel file (.xlsx)", ty
 # 📌 Istruzioni aggiuntive sotto il caricamento del file
 st.sidebar.markdown("📌 **Thesis name in first line. No header for repetition lines.**")
 
+# 🌟 CSS per rendere le tabelle responsive ed evitare lo scrolling orizzontale
+st.markdown(
+    """
+    <style>
+        /* Imposta la larghezza delle colonne in modo che si adattino senza scorrimento */
+        .dataframe th, .dataframe td {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            text-align: left !important;
+        }
+        /* Riduci i margini tra le celle */
+        .dataframe td, .dataframe th {
+            padding: 5px !important;
+        }
+        /* Imposta la larghezza della tabella al 100% per adattarsi allo spazio disponibile */
+        .dataframe {
+            width: 100% !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # 📌 Controllo se è stato caricato un file
 if uploaded_file:
     df = load_data(uploaded_file)  # 🔄 Carica i dati
@@ -29,7 +52,8 @@ if uploaded_file:
 
             # 📌 Converte i risultati in DataFrame se necessario
             if isinstance(result, pd.DataFrame):
-                st.dataframe(result, use_container_width=True)
+                # Usa HTML+CSS per adattare la tabella alla larghezza
+                st.markdown(result.to_html(index=False, escape=False), unsafe_allow_html=True)
             elif isinstance(result, dict):
                 st.json(result)  # Per debug, mostra i dizionari
             else:
