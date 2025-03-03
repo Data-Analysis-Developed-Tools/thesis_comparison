@@ -1,0 +1,25 @@
+import streamlit as st
+import pandas as pd
+from data_loader import load_data
+from anova_analysis import run_anova_tests
+
+# 🎨 Titolo dell'app
+st.title("Analisi ANOVA con Test Post-Hoc")
+
+# 📂 Caricamento del file .xlsx
+uploaded_file = st.file_uploader("Carica un file Excel (.xlsx)", type=["xlsx"])
+
+if uploaded_file:
+    df = load_data(uploaded_file)  # 🔄 Carica i dati
+    if df is not None:
+        st.write("📊 **Dati caricati:**", df.head())
+
+        # 🏃‍♂️ Esegui i test
+        results = run_anova_tests(df)
+
+        # 📝 Mostra i risultati in Streamlit
+        for test_name, result in results.items():
+            st.subheader(test_name)
+            st.write(result)
+else:
+    st.warning("📂 Carica un file Excel per procedere.")
