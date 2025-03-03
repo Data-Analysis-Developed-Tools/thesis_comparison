@@ -3,12 +3,15 @@ import pandas as pd
 from data_loader import load_data
 from tests import run_anova_tests
 
-# 🌟 Nuovo titolo
-st.title("📊 Comparison Test Between Theses")
+# 🌟 Nuovo titolo con carattere ridotto del 30%
+st.markdown("<h2 style='text-align: center; font-size: 70%;'>📊 Comparison Test Between Theses</h2>", unsafe_allow_html=True)
 
 # 📂 Caricamento del file nella barra laterale
 st.sidebar.header("⚙️ Settings")
 uploaded_file = st.sidebar.file_uploader("📂 Upload an Excel file (.xlsx)", type=["xlsx"])
+
+# 📌 Istruzioni aggiuntive sotto il caricamento del file
+st.sidebar.markdown("📌 **Thesis name in first line. No header for repetition lines.**")
 
 # 📌 Controllo se è stato caricato un file
 if uploaded_file:
