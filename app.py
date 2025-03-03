@@ -16,6 +16,8 @@ st.sidebar.markdown("📌 **Thesis name in first line. No header for repetition 
 
 # 📊 Selezione della verifica di normalità
 st.sidebar.subheader("📈 Normality & Variance Tests")
+st.sidebar.write("🧪 **Normality test used: Shapiro-Wilk**")  # Indica il test utilizzato
+
 normality_results = {}
 variance_homogeneity = None
 
@@ -69,6 +71,12 @@ if uploaded_file:
                 st.subheader("📉 Performing **Kruskal-Wallis Test** (for multiple non-normal groups)")
                 kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
                 st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
+
+                # 📌 Commento interpretativo per Kruskal-Wallis
+                if p_kruskal < 0.05:
+                    st.info("🔬 The Kruskal-Wallis test suggests that at least one thesis differs significantly from the others. Consider performing pairwise comparisons for further analysis.")
+                else:
+                    st.info("✅ The Kruskal-Wallis test indicates no significant differences between the theses.")
 
 else:
     st.sidebar.warning("📂 Upload an Excel file to proceed.")
