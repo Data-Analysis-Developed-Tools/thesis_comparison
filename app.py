@@ -27,8 +27,13 @@ if uploaded_file:
         for test_name, result in results.items():
             st.subheader(test_name)
 
-            # 📌 Adatta le tabelle alla larghezza della pagina
-            st.dataframe(result, use_container_width=True)
+            # 📌 Converte i risultati in DataFrame se necessario
+            if isinstance(result, pd.DataFrame):
+                st.dataframe(result, use_container_width=True)
+            elif isinstance(result, dict):
+                st.json(result)  # Per debug, mostra i dizionari
+            else:
+                st.write(result)  # Per stringhe e altri valori
 
             # 📌 Mostra il commento interpretativo per ogni test
             if test_name in interpretations:
