@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from data_loader import load_data
-from anova_analysis import run_anova_tests
+from tests import run_anova_tests
 
 # 🌟 Titolo dell'app
 st.title("📊 Analisi ANOVA con Test Post-Hoc")
