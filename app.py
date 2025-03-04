@@ -90,6 +90,7 @@ if uploaded_file:
                     if anova["p-unc"].values[0] < 0.05:
                         tukey = mc.pairwise_tukeyhsd(df_melted["Value"], df_melted["Thesis"])
                         tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
+                        st.subheader("📊 Performing **Tukey's Post-Hoc Test**")
                         st.dataframe(tukey_df, use_container_width=True)
             else:
                 st.subheader("📉 Performing **Games-Howell Test**")
