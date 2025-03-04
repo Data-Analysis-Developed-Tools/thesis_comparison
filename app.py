@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import scipy.stats as stats
+import statsmodels.api as sm
+import statsmodels.stats.multicomp as mc
 import pingouin as pg
 from data_loader import load_data
 
@@ -50,40 +52,64 @@ if uploaded_file:
         st.sidebar.write(f"**Levene's Test**: p = {p_levene:.4f} ({levene_result_text})")
 
         # 📌 Esecuzione dei test statistici
+        df_melted = df.melt(var_name="Thesis", value_name="Value")
         num_groups = len(df.columns)
 
         if all(p > 0.05 for p in normality_results.values()):  # Dati normali
             if variance_homogeneity:
                 st.subheader("🏆 Performing **Standard ANOVA**")
-                anova = pg.anova(data=df.melt(var_name="Thesis", value_name="Value"), dv="Value", between="Thesis", detailed=True)
+                anova = pg.anova(data=df_melted, dv="Value", between="Thesis", detailed=True)
                 st.dataframe(anova, use_container_width=True)
 
-                # 📌 Interpretazione dell'ANOVA
-                p_anova = anova["p-unc"].values[0]
-                if p_anova < 0.05:
+                if anova["p-unc"].values[0] < 0.05:
                     st.info("🔬 ANOVA indicates that at least one thesis is significantly different from the others.")
-                else:
-                    st.info("✅ ANOVA does not detect significant differences between the theses.")
 
-                # 📊 Bonferroni Post-Hoc (sempre eseguito se ci sono più di due gruppi)
-                if num_groups > 2:
-                    st.subheader("📊 Performing **Bonferroni Post-Hoc Test**")
-                    bonferroni = pg.pairwise_ttests(data=df.melt(var_name="Thesis", value_name="Value"), dv="Value", between="Thesis", padjust="bonferroni")
-                    st.dataframe(bonferroni, use_container_width=True)
+                    # 📊 **Test di Tukey HSD**
+                    st.subheader("📊 Performing **Tukey's Post-Hoc Test**")
+                    tukey = mc.pairwise_tukeyhsd(df_melted["Value"], df_melted["Thesis"])
+                    tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
+                    st.dataframe(tukey_df, use_container_width=True)
 
-                    # 📌 Interpretazione Bonferroni
-                    significant_pairs = bonferroni[bonferroni["p-corr"] < 0.05]
-                    if not significant_pairs.empty:
-                        st.info("✅ Significant differences detected between these theses:")
-                        for _, row in significant_pairs.iterrows():
-                            st.write(f"- {row['A']} vs {row['B']} (p = {row['p-corr']:.4f})")
+                    tukey_significant = tukey_df[tukey_df["p-adj"] < 0.05]
+                    if not tukey_significant.empty:
+                        st.info("✅ Tukey's test detected significant differences between these thesis pairs:")
+                        for _, row in tukey_significant.iterrows():
+                            st.write(f"- {row['group1']} vs {row['group2']} (p = {row['p-adj']:.4f})")
                     else:
-                        st.info("✅ Bonferroni test does not detect significant differences between the theses.")
+                        st.info("❌ Tukey's test does not detect significant differences between the theses.")
+
+                else:
+                    st.info("✅ ANOVA does not detect significant differences.")
 
             else:
                 st.subheader("📈 Performing **Welch's ANOVA** (for unequal variances)")
-                welch_anova = pg.welch_anova(data=df.melt(var_name="Thesis", value_name="Value"), dv="Value", between="Thesis")
+                welch_anova = pg.welch_anova(data=df_melted, dv="Value", between="Thesis")
                 st.dataframe(welch_anova, use_container_width=True)
+
+        else:  # Dati non normali
+            if num_groups == 2:
+                st.subheader("📊 Performing **Mann-Whitney U Test** (for 2 non-normal groups)")
+                u_stat, p_mann = stats.mannwhitneyu(df.iloc[:, 0].dropna(), df.iloc[:, 1].dropna(), alternative="two-sided")
+                st.write(f"**Mann-Whitney U Statistic**: {u_stat:.4f}, **p-value**: {p_mann:.4f}")
+            else:
+                st.subheader("📉 Performing **Kruskal-Wallis Test** (for multiple non-normal groups)")
+                kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
+                st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
+
+                if p_kruskal < 0.05:
+                    st.info("🔬 Kruskal-Wallis test suggests significant differences. Consider pairwise tests.")
+                    # 📉 **Test di Games-Howell**
+                    st.subheader("📉 Performing **Games-Howell Post-Hoc Test**")
+                    games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
+                    st.dataframe(games_howell, use_container_width=True)
+
+                    games_significant = games_howell[games_howell["pval"] < 0.05]
+                    if not games_significant.empty:
+                        st.info("✅ Games-Howell test detected significant differences between these thesis pairs:")
+                        for _, row in games_significant.iterrows():
+                            st.write(f"- {row['A']} vs {row['B']} (p = {row['pval']:.4f})")
+                    else:
+                        st.info("❌ Games-Howell test does not detect significant differences between the theses.")
 
 else:
     st.sidebar.warning("📂 Upload an Excel file to proceed.")
