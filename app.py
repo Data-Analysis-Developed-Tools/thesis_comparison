@@ -27,12 +27,10 @@ uploaded_file = st.sidebar.file_uploader("📂 Upload an Excel file (.xlsx)", ty
 if uploaded_file:
     df = load_data(uploaded_file)  # 📂 Carica i dati
 
-    # ✅ Controllo se i dati sono validi
     if df is not None and not df.empty:
         st.write("✅ **Data uploaded successfully!**")
         st.write(df.head())  # Mostra anteprima dei dati
 
-        # 📊 Mostra il numero di tesi nel dataset nella sidebar
         num_theses = len(df.columns)
         st.sidebar.subheader("📊 Dataset Overview")
         st.sidebar.write(f"🔢 **Number of Theses:** {num_theses}")
@@ -57,72 +55,46 @@ if uploaded_file:
         levene_result_text = "✅ Variances are homogeneous" if variance_homogeneity else "⚠️ Variances are heterogeneous"
         st.sidebar.write(f"**Levene's Test**: p = {p_levene:.4f} ({levene_result_text})")
 
-        # 📌 Esecuzione dei test statistici
+        # 📌 Decisione su quale test eseguire
         df_melted = df.melt(var_name="Thesis", value_name="Value")
 
-        if num_theses == 2:  # Se ci sono solo due tesi
+        if num_theses == 2:
             st.subheader("📊 Performing **Two-group Comparison Test**")
-
             group1 = df.iloc[:, 0].dropna()
             group2 = df.iloc[:, 1].dropna()
 
             if all(p > 0.05 for p in normality_results.values()):  # Entrambe le tesi sono normali
-                stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=variance_homogeneity)
-                st.write(f"**T-test Statistic**: {stat_ttest:.4f}, **p-value**: {p_ttest:.4f}")
-
-                if p_ttest < 0.05:
-                    st.info("🔬 The T-test indicates that the two theses are significantly different.")
+                if variance_homogeneity:
+                    stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=True)
+                    st.write(f"**T-test Statistic**: {stat_ttest:.4f}, **p-value**: {p_ttest:.4f}")
                 else:
-                    st.info("✅ The T-test does not detect significant differences between the two theses.")
-
-            else:  # Almeno una tesi non è normale → Usa Mann-Whitney U test
+                    stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=False)
+                    st.write(f"**Welch's T-test Statistic**: {stat_ttest:.4f}, **p-value**: {p_ttest:.4f}")
+            else:
                 stat_mann, p_mann = stats.mannwhitneyu(group1, group2, alternative="two-sided")
                 st.write(f"**Mann-Whitney U Statistic**: {stat_mann:.4f}, **p-value**: {p_mann:.4f}")
 
-                if p_mann < 0.05:
-                    st.info("🔬 The Mann-Whitney U test indicates that the two theses are significantly different.")
+        elif num_theses > 2:
+            if variance_homogeneity:
+                if any(p < 0.05 for p in normality_results.values()):  # Almeno una non normale
+                    st.subheader("📉 Performing **Kruskal-Wallis Test**")
+                    kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
+                    st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
+                    if p_kruskal < 0.05:
+                        dunn_results = sp.posthoc_dunn(df, p_adjust='bonferroni')
+                        st.dataframe(dunn_results, use_container_width=True)
                 else:
-                    st.info("✅ The Mann-Whitney U test does not detect significant differences between the two theses.")
-
-        elif num_theses > 2:  # Se ci sono più di 2 tesi
-            if variance_homogeneity and any(p < 0.05 for p in normality_results.values()):
-                # 📊 **Kruskal-Wallis per dati non normali ma varianze simili**
-                st.subheader("📉 Performing **Kruskal-Wallis Test**")
-                kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
-                st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
-
-                if p_kruskal < 0.05:
-                    st.info("🔬 The Kruskal-Wallis test indicates that at least one thesis is significantly different.")
-
-                    # 📉 **Test di Dunn per confronti post-hoc**
-                    st.subheader("📉 Performing **Dunn's Post-Hoc Test**")
-                    dunn_results = sp.posthoc_dunn(df, p_adjust='bonferroni')
-                    st.dataframe(dunn_results, use_container_width=True)
-
-                    # Interpretazione risultati di Dunn
-                    significant_pairs = dunn_results[dunn_results < 0.05]
-                    if not significant_pairs.empty:
-                        st.info("✅ Dunn's test detected significant differences between these thesis pairs:")
-                        for idx, row in significant_pairs.iterrows():
-                            for col in significant_pairs.columns:
-                                if row[col] < 0.05 and idx != col:
-                                    st.write(f"- {idx} vs {col} (p = {row[col]:.4f})")
-                    else:
-                        st.info("✅ Dunn's test does not detect significant differences between the theses.")
-
+                    st.subheader("🏆 Performing **Standard ANOVA**")
+                    anova = pg.anova(data=df_melted, dv="Value", between="Thesis", detailed=True)
+                    st.dataframe(anova, use_container_width=True)
+                    if anova["p-unc"].values[0] < 0.05:
+                        tukey = mc.pairwise_tukeyhsd(df_melted["Value"], df_melted["Thesis"])
+                        tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
+                        st.dataframe(tukey_df, use_container_width=True)
             else:
-                # 📊 **ANOVA standard per dati normali e varianze omogenee**
-                st.subheader("🏆 Performing **Standard ANOVA**")
-                anova = pg.anova(data=df_melted, dv="Value", between="Thesis", detailed=True)
-                st.dataframe(anova, use_container_width=True)
-
-                if anova["p-unc"].values[0] < 0.05:
-                    st.info("🔬 ANOVA indicates that at least one thesis is significantly different.")
-                    # 📊 **Test di Tukey HSD**
-                    st.subheader("📊 Performing **Tukey's Post-Hoc Test**")
-                    tukey = mc.pairwise_tukeyhsd(df_melted["Value"], df_melted["Thesis"])
-                    tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
-                    st.dataframe(tukey_df, use_container_width=True)
+                st.subheader("📉 Performing **Games-Howell Test**")
+                games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
+                st.dataframe(games_howell, use_container_width=True)
 
 else:
     st.sidebar.warning("📂 Upload an Excel file to proceed.")
