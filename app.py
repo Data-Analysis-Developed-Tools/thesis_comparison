@@ -31,6 +31,11 @@ if uploaded_file:
         st.write("✅ **Data uploaded successfully!**")
         st.write(df.head())  # Mostra anteprima dei dati
 
+        # 📊 Mostra il numero di tesi nel dataset nella sidebar
+        num_theses = len(df.columns)
+        st.sidebar.subheader("📊 Dataset Overview")
+        st.sidebar.write(f"🔢 **Number of Theses:** {num_theses}")
+
         # 🔍 Test di normalità (Shapiro-Wilk)
         st.sidebar.subheader("📈 Normality & Variance Tests")
         st.sidebar.write("🧪 **Normality test used: Shapiro-Wilk**")
