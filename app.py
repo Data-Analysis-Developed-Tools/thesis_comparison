@@ -85,20 +85,30 @@ if uploaded_file:
                     st.info("✅ The Mann-Whitney U test does not detect significant differences between the two theses.")
 
         elif num_theses > 2:  # Se ci sono più di 2 tesi
-            if not variance_homogeneity or any(p < 0.05 for p in normality_results.values()):
-                # 📊 **Games-Howell per dati con varianze diverse o non normali**
-                st.subheader("📉 Performing **Games-Howell Test**")
-                games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
-                st.dataframe(games_howell, use_container_width=True)
+            if variance_homogeneity and any(p < 0.05 for p in normality_results.values()):
+                # 📊 **Kruskal-Wallis per dati non normali ma varianze simili**
+                st.subheader("📉 Performing **Kruskal-Wallis Test**")
+                kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
+                st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
 
-                # Interpretazione risultati di Games-Howell
-                significant_pairs = games_howell[games_howell["pval"] < 0.05]
-                if not significant_pairs.empty:
-                    st.info("✅ Games-Howell test detected significant differences between these thesis pairs:")
-                    for _, row in significant_pairs.iterrows():
-                        st.write(f"- {row['A']} vs {row['B']} (p = {row['pval']:.4f})")
-                else:
-                    st.info("✅ Games-Howell test does not detect significant differences between the theses.")
+                if p_kruskal < 0.05:
+                    st.info("🔬 The Kruskal-Wallis test indicates that at least one thesis is significantly different.")
+
+                    # 📉 **Test di Dunn per confronti post-hoc**
+                    st.subheader("📉 Performing **Dunn's Post-Hoc Test**")
+                    dunn_results = sp.posthoc_dunn(df, p_adjust='bonferroni')
+                    st.dataframe(dunn_results, use_container_width=True)
+
+                    # Interpretazione risultati di Dunn
+                    significant_pairs = dunn_results[dunn_results < 0.05]
+                    if not significant_pairs.empty:
+                        st.info("✅ Dunn's test detected significant differences between these thesis pairs:")
+                        for idx, row in significant_pairs.iterrows():
+                            for col in significant_pairs.columns:
+                                if row[col] < 0.05 and idx != col:
+                                    st.write(f"- {idx} vs {col} (p = {row[col]:.4f})")
+                    else:
+                        st.info("✅ Dunn's test does not detect significant differences between the theses.")
 
             else:
                 # 📊 **ANOVA standard per dati normali e varianze omogenee**
@@ -107,7 +117,7 @@ if uploaded_file:
                 st.dataframe(anova, use_container_width=True)
 
                 if anova["p-unc"].values[0] < 0.05:
-                    st.info("🔬 ANOVA indicates that at least one thesis is significantly different from the others.")
+                    st.info("🔬 ANOVA indicates that at least one thesis is significantly different.")
                     # 📊 **Test di Tukey HSD**
                     st.subheader("📊 Performing **Tukey's Post-Hoc Test**")
                     tukey = mc.pairwise_tukeyhsd(df_melted["Value"], df_melted["Thesis"])
