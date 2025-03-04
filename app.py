@@ -58,9 +58,8 @@ if uploaded_file:
 
         # 📌 Esecuzione dei test statistici
         df_melted = df.melt(var_name="Thesis", value_name="Value")
-        num_groups = len(df.columns)
 
-        if num_groups == 2:  # Se ci sono solo due tesi
+        if num_theses == 2:  # Se ci sono solo due tesi
             st.subheader("📊 Performing **Two-group Comparison Test**")
 
             group1 = df.iloc[:, 0].dropna()
@@ -86,7 +85,7 @@ if uploaded_file:
                 else:
                     st.info("✅ The Mann-Whitney U test does not detect significant differences between the two theses.")
 
-        else:  # Se ci sono più di 2 tesi, usa ANOVA + Tukey HSD o altri test
+        elif num_theses > 2:  # Se ci sono più di 2 tesi, usa ANOVA + Tukey HSD o altri test
             if all(p > 0.05 for p in normality_results.values()):  # Dati normali
                 if variance_homogeneity:
                     st.subheader("🏆 Performing **Standard ANOVA**")
@@ -96,7 +95,7 @@ if uploaded_file:
                     if anova["p-unc"].values[0] < 0.05:
                         st.info("🔬 ANOVA indicates that at least one thesis is significantly different from the others.")
 
-                        # 📊 **Test di Tukey HSD**
+                        # 📊 **Test di Tukey HSD** (solo se ci sono più di 2 tesi)
                         st.subheader("📊 Performing **Tukey's Post-Hoc Test**")
                         tukey = mc.pairwise_tukeyhsd(df_melted["Value"], df_melted["Thesis"])
                         tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
