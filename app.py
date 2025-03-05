@@ -67,15 +67,15 @@ if uploaded_file:
                 if variance_homogeneity:
                     stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=True)
                     st.write(f"**T-test Statistic**: {stat_ttest:.4f}, **p-value**: {p_ttest:.4f}")
-                    st.write("✅ **T-test completed**: If p-value < 0.05, the two theses are significantly different.")
+                    st.write("**Interpretation:** The t-test is significant if p-value < 0.05, indicating a difference between groups.")
                 else:
                     stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=False)
                     st.write(f"**Welch's T-test Statistic**: {stat_ttest:.4f}, **p-value**: {p_ttest:.4f}")
-                    st.write("✅ **Welch's T-test completed**: If p-value < 0.05, the two theses are significantly different.")
+                    st.write("**Interpretation:** The Welch's t-test accounts for unequal variances; significance is determined if p-value < 0.05.")
             else:
                 stat_mann, p_mann = stats.mannwhitneyu(group1, group2, alternative="two-sided")
                 st.write(f"**Mann-Whitney U Statistic**: {stat_mann:.4f}, **p-value**: {p_mann:.4f}")
-                st.write("✅ **Mann-Whitney Test completed**: If p-value < 0.05, the two theses are significantly different.")
+                st.write("**Interpretation:** The Mann-Whitney test is non-parametric; significance is determined if p-value < 0.05.")
 
         elif num_theses > 2:
             if not variance_homogeneity:
@@ -83,29 +83,28 @@ if uploaded_file:
                     st.subheader("📉 Performing **Games-Howell Test**")
                     games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
                     st.dataframe(games_howell, use_container_width=True)
-                    st.write("✅ **Games-Howell completed**: Theses with p-value < 0.05 are significantly different.")
+                    st.write("**Interpretation:** Significant differences are marked by p-values < 0.05.")
                 else:
                     st.subheader("📉 Performing **Welch ANOVA**")
                     welch_anova = pg.welch_anova(data=df_melted, dv="Value", between="Thesis")
                     st.dataframe(welch_anova, use_container_width=True)
-                    st.write("✅ **Welch ANOVA completed**: If p-value < 0.05, at least one thesis differs significantly.")
+                    st.write("**Interpretation:** Welch ANOVA tests for differences; significance is p-value < 0.05.")
                     if welch_anova["p-unc"].values[0] < 0.05:
                         st.subheader("📉 Performing **Games-Howell Test**")
                         games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
                         st.dataframe(games_howell, use_container_width=True)
-                        st.write("✅ **Games-Howell completed**: Theses with p-value < 0.05 are significantly different.")
+                        st.write("**Interpretation:** Significant differences are marked by p-values < 0.05.")
             else:
                 if any(p < 0.05 for p in normality_results.values()):
                     st.subheader("📉 Performing **Kruskal-Wallis Test**")
                     kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
                     st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
-                    st.write("✅ **Kruskal-Wallis completed**: If p-value < 0.05, at least one thesis differs significantly.")
+                    st.write("**Interpretation:** Kruskal-Wallis is a non-parametric test; significance is p-value < 0.05.")
                     if p_kruskal < 0.05:
                         st.subheader("📊 Performing **Dunn's Post-Hoc Test (Bonferroni Correction)**")
                         df_long = df.melt(var_name="Thesis", value_name="Value").dropna()
                         dunn_results = sp.posthoc_dunn(df_long, val_col="Value", group_col="Thesis", p_adjust='bonferroni')
                         st.dataframe(dunn_results, use_container_width=True)
-                        st.write("✅ **Dunn's Test completed**: Theses with p-value < 0.05 are significantly different.")
-
+                        st.write("**Interpretation:** Significant differences are marked by p-values < 0.05.")
 else:
     st.sidebar.warning("📂 Upload an Excel file to proceed.")
