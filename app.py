@@ -75,31 +75,31 @@ if uploaded_file:
                 st.write(f"**Mann-Whitney U Statistic**: {stat_mann:.4f}, **p-value**: {p_mann:.4f}")
 
         elif num_theses > 2:
-            if variance_homogeneity:
-                if any(p < 0.05 for p in normality_results.values()):  # Almeno una non normale
+            if not variance_homogeneity:
+                if any(p < 0.05 for p in normality_results.values()):
+                    st.subheader("📉 Performing **Games-Howell Test**")
+                    games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
+                    st.dataframe(games_howell, use_container_width=True)
+                    st.write("**Interpretation:** Significantly different theses are highlighted based on p-values < 0.05.")
+                else:
+                    st.subheader("📉 Performing **Welch ANOVA**")
+                    welch_anova = pg.welch_anova(data=df_melted, dv="Value", between="Thesis")
+                    st.dataframe(welch_anova, use_container_width=True)
+                    if welch_anova["p-unc"].values[0] < 0.05:
+                        st.subheader("📉 Performing **Games-Howell Test**")
+                        games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
+                        st.dataframe(games_howell, use_container_width=True)
+                        st.write("**Interpretation:** Significantly different theses are highlighted based on p-values < 0.05.")
+            else:
+                if any(p < 0.05 for p in normality_results.values()):
                     st.subheader("📉 Performing **Kruskal-Wallis Test**")
                     kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
                     st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
                     if p_kruskal < 0.05:
-                        dunn_results = sp.posthoc_dunn(df, p_adjust='bonferroni')
+                        st.subheader("📊 Performing **Dunn's Post-Hoc Test (Bonferroni Correction)**")
+                        df_long = df.melt(var_name="Thesis", value_name="Value").dropna()
+                        dunn_results = sp.posthoc_dunn(df_long, val_col="Value", group_col="Thesis", p_adjust='bonferroni')
                         st.dataframe(dunn_results, use_container_width=True)
-                else:
-                    st.subheader("🏆 Performing **Standard ANOVA**")
-                    anova = pg.anova(data=df_melted, dv="Value", between="Thesis", detailed=True)
-                    st.dataframe(anova, use_container_width=True)
-                    if anova["p-unc"].values[0] < 0.05:
-                        tukey = mc.pairwise_tukeyhsd(df_melted["Value"], df_melted["Thesis"])
-                        tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
-                        st.subheader("📊 Performing **Tukey's Post-Hoc Test**")
-                        st.dataframe(tukey_df, use_container_width=True)
-            else:
-                st.subheader("📉 Performing **Welch ANOVA**")
-                welch_anova = pg.welch_anova(data=df_melted, dv="Value", between="Thesis")
-                st.dataframe(welch_anova, use_container_width=True)
-                if welch_anova["p-unc"].values[0] < 0.05:
-                    st.subheader("📉 Performing **Games-Howell Test**")
-                    games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
-                    st.dataframe(games_howell, use_container_width=True)
-
+                        st.write("**Interpretation:** Significantly different theses are highlighted based on p-values < 0.05.")
 else:
     st.sidebar.warning("📂 Upload an Excel file to proceed.")
