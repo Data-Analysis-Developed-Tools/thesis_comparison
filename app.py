@@ -63,7 +63,7 @@ if uploaded_file:
             group1 = df.iloc[:, 0].dropna()
             group2 = df.iloc[:, 1].dropna()
 
-            if all(p > 0.05 for p in normality_results.values()):  # Entrambe le tesi sono normali
+            if all(p > 0.05 for p in normality_results.values()):
                 if variance_homogeneity:
                     stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=True)
                     st.write(f"**T-test Statistic**: {stat_ttest:.4f}, **p-value**: {p_ttest:.4f}")
@@ -81,9 +81,7 @@ if uploaded_file:
                     kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
                     st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
                     if p_kruskal < 0.05:
-                        st.subheader("📊 Performing **Dunn's Post-Hoc Test (Bonferroni Correction)**")
-                        df_long = df.melt(var_name="Thesis", value_name="Value").dropna()
-                        dunn_results = sp.posthoc_dunn(df_long, val_col="Value", group_col="Thesis", p_adjust='bonferroni')
+                        dunn_results = sp.posthoc_dunn(df, p_adjust='bonferroni')
                         st.dataframe(dunn_results, use_container_width=True)
                 else:
                     st.subheader("🏆 Performing **Standard ANOVA**")
