@@ -58,40 +58,29 @@ if uploaded_file:
         # 📌 Decisione su quale test eseguire
         df_melted = df.melt(var_name="Tesi", value_name="Valore")
 
-        if num_theses == 2:
-            st.subheader("📊 Confronto tra due tesi")
-            group1 = df.iloc[:, 0].dropna()
-            group2 = df.iloc[:, 1].dropna()
+        if num_theses > 2 and variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
+            st.subheader("📉 Esecuzione di **ANOVA**")
+            anova = pg.anova(data=df_melted, dv="Valore", between="Tesi", detailed=True)
+            st.dataframe(anova, use_container_width=True)
 
-            if all(p > 0.05 for p in normality_results.values()):
-                if variance_homogeneity:
-                    stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=True)
-                    st.write(f"**T-test**: statistica = {stat_ttest:.4f}, p-value = {p_ttest:.4f}")
-                    st.write("✅ Il test T-test mostra che la Tesi 1 e la Tesi 2 {} significativamente diverse (p-value = {:.4f}).".format("sono" if p_ttest < 0.05 else "non sono", p_ttest))
+            # 🔹 Interpretazione ANOVA
+            if anova["p-unc"].values[0] < 0.05:
+                st.write("✅ Il test ANOVA ha identificato almeno una differenza significativa tra le tesi (p-value = {:.4f}).".format(anova["p-unc"].values[0]))
+                st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
+                tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
+                tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
+                st.dataframe(tukey_df, use_container_width=True)
+
+                # 📌 Estrazione delle coppie significativamente diverse
+                significant_pairs = tukey_df[tukey_df["P>t"] < 0.05]
+                if not significant_pairs.empty:
+                    st.write("✅ Il test di Tukey HSD evidenzia le seguenti tesi significativamente diverse:")
+                    for row in significant_pairs.itertuples():
+                        st.write(f"🔹 {row._1} vs {row._2} (p-value = {row._6:.4f})")
                 else:
-                    stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=False)
-                    st.write(f"**Welch's T-test**: statistica = {stat_ttest:.4f}, p-value = {p_ttest:.4f}")
-                    st.write("✅ Il test di Welch indica che la Tesi 1 e la Tesi 2 {} significativamente diverse (p-value = {:.4f}).".format("sono" if p_ttest < 0.05 else "non sono", p_ttest))
+                    st.write("⚠️ Il test di Tukey HSD non ha rilevato differenze significative tra le tesi.")
             else:
-                stat_mann, p_mann = stats.mannwhitneyu(group1, group2, alternative="two-sided")
-                st.write(f"**Test di Mann-Whitney U**: statistica = {stat_mann:.4f}, p-value = {p_mann:.4f}")
-                st.write("✅ Il test di Mann-Whitney mostra che la Tesi 1 e la Tesi 2 {} significativamente diverse (p-value = {:.4f}).".format("sono" if p_mann < 0.05 else "non sono", p_mann))
+                st.write("⚠️ Il test ANOVA non ha identificato differenze significative tra le tesi (p-value = {:.4f}).".format(anova["p-unc"].values[0]))
 
-        elif num_theses > 2:
-            if variance_homogeneity:
-                if all(p > 0.05 for p in normality_results.values()):
-                    st.subheader("📉 Esecuzione di **ANOVA**")
-                    anova = pg.anova(data=df_melted, dv="Valore", between="Tesi", detailed=True)
-                    st.dataframe(anova, use_container_width=True)
-                    st.write("✅ Il test ANOVA indica che {} le tesi messe a confronto sono significativamente diverse (p-value = {:.4f}).".format("" if anova["p-unc"].values[0] < 0.05 else "non", anova["p-unc"].values[0]))
-                    if anova["p-unc"].values[0] < 0.05:
-                        st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
-                        tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
-                        tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
-                        st.dataframe(tukey_df, use_container_width=True)
-                        st.write("✅ Il test di Tukey HSD evidenzia che le seguenti tesi sono significativamente diverse:")
-                        for row in tukey_df.itertuples():
-                            if row.pvalue < 0.05:
-                                st.write(f"🔹 {row.group1} vs {row.group2} (p-value = {row.pvalue:.4f})")
 else:
     st.sidebar.warning("📂 Carica un file Excel per procedere.")
