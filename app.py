@@ -93,9 +93,13 @@ if uploaded_file:
                         st.subheader("📊 Performing **Tukey's Post-Hoc Test**")
                         st.dataframe(tukey_df, use_container_width=True)
             else:
-                st.subheader("📉 Performing **Games-Howell Test**")
-                games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
-                st.dataframe(games_howell, use_container_width=True)
+                st.subheader("📉 Performing **Welch ANOVA**")
+                welch_anova = pg.welch_anova(data=df_melted, dv="Value", between="Thesis")
+                st.dataframe(welch_anova, use_container_width=True)
+                if welch_anova["p-unc"].values[0] < 0.05:
+                    st.subheader("📉 Performing **Games-Howell Test**")
+                    games_howell = pg.pairwise_gameshowell(data=df_melted, dv="Value", between="Thesis")
+                    st.dataframe(games_howell, use_container_width=True)
 
 else:
     st.sidebar.warning("📂 Upload an Excel file to proceed.")
