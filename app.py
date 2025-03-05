@@ -81,7 +81,9 @@ if uploaded_file:
                     kw_stat, p_kruskal = stats.kruskal(*[df[col].dropna() for col in df.columns])
                     st.write(f"**Kruskal-Wallis Statistic**: {kw_stat:.4f}, **p-value**: {p_kruskal:.4f}")
                     if p_kruskal < 0.05:
-                        dunn_results = sp.posthoc_dunn(df, p_adjust='bonferroni')
+                        st.subheader("📊 Performing **Dunn's Post-Hoc Test (Bonferroni Correction)**")
+                        df_long = df.melt(var_name="Thesis", value_name="Value").dropna()
+                        dunn_results = sp.posthoc_dunn(df_long, val_col="Value", group_col="Thesis", p_adjust='bonferroni')
                         st.dataframe(dunn_results, use_container_width=True)
                 else:
                     st.subheader("🏆 Performing **Standard ANOVA**")
