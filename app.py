@@ -66,17 +66,20 @@ if uploaded_file:
             # 🔹 Interpretazione ANOVA
             if anova["p-unc"].values[0] < 0.05:
                 st.write("✅ Il test ANOVA ha identificato almeno una differenza significativa tra le tesi (p-value = {:.4f}).".format(anova["p-unc"].values[0]))
+                
                 st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
                 tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
                 tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
                 st.dataframe(tukey_df, use_container_width=True)
 
-                # 📌 Estrazione delle coppie significativamente diverse
-                significant_pairs = tukey_df[tukey_df["p-adj"] < 0.05]  # Accesso corretto alla colonna p-value
+                # 📌 Estrazione delle coppie significativamente diverse con il nome corretto delle colonne
+                tukey_df.columns = ["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]
+                significant_pairs = tukey_df[tukey_df["reject"] == True]
+
                 if not significant_pairs.empty:
                     st.write("✅ Il test di Tukey HSD evidenzia le seguenti tesi significativamente diverse:")
-                    for row in significant_pairs.itertuples():
-                        st.write(f"🔹 {row._1} vs {row._2} (p-value = {row._4:.4f})")
+                    for _, row in significant_pairs.iterrows():
+                        st.write(f"🔹 {row['group1']} vs {row['group2']} (p-value = {row['p-adj']:.4f})")
                 else:
                     st.write("⚠️ Il test di Tukey HSD non ha rilevato differenze significative tra le tesi.")
             else:
