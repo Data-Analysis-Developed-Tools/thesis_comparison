@@ -72,11 +72,11 @@ if uploaded_file:
                 st.dataframe(tukey_df, use_container_width=True)
 
                 # 📌 Estrazione delle coppie significativamente diverse
-                significant_pairs = tukey_df[tukey_df["P>t"] < 0.05]
+                significant_pairs = tukey_df[tukey_df["p-adj"] < 0.05]  # Accesso corretto alla colonna p-value
                 if not significant_pairs.empty:
                     st.write("✅ Il test di Tukey HSD evidenzia le seguenti tesi significativamente diverse:")
                     for row in significant_pairs.itertuples():
-                        st.write(f"🔹 {row._1} vs {row._2} (p-value = {row._6:.4f})")
+                        st.write(f"🔹 {row._1} vs {row._2} (p-value = {row._4:.4f})")
                 else:
                     st.write("⚠️ Il test di Tukey HSD non ha rilevato differenze significative tra le tesi.")
             else:
