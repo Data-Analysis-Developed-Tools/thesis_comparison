@@ -58,21 +58,7 @@ if uploaded_file:
         # 📌 Decisione su quale test eseguire
         df_melted = df.melt(var_name="Tesi", value_name="Valore")
 
-        if num_theses == 2:
-            st.subheader("📊 Confronto tra due tesi")
-            group1 = df.iloc[:, 0].dropna()
-            group2 = df.iloc[:, 1].dropna()
-
-            if all(p > 0.05 for p in normality_results.values()) and variance_homogeneity:
-                stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=True)
-                st.write(f"**T-test**: statistica = {stat_ttest:.4f}, p-value = {p_ttest:.4f}")
-            elif all(p > 0.05 for p in normality_results.values()) and not variance_homogeneity:
-                stat_welch, p_welch = stats.ttest_ind(group1, group2, equal_var=False)
-                st.write(f"**Welch's T-test**: statistica = {stat_welch:.4f}, p-value = {p_welch:.4f}")
-            else:
-                stat_mann, p_mann = stats.mannwhitneyu(group1, group2, alternative="two-sided")
-                st.write(f"**Test di Mann-Whitney U**: statistica = {stat_mann:.4f}, p-value = {p_mann:.4f}")
-        elif num_theses > 2:
+        if num_theses > 2:
             if variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
                 st.subheader("📉 Esecuzione di **ANOVA**")
                 anova = pg.anova(data=df_melted, dv="Valore", between="Tesi", detailed=True)
@@ -89,13 +75,17 @@ if uploaded_file:
                     st.subheader("📊 Test Post-Hoc: **Games-Howell**")
                     gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
                     st.dataframe(gh, use_container_width=True)
-            else:
+            elif variance_homogeneity and any(p <= 0.05 for p in normality_results.values()):
                 st.subheader("📉 Esecuzione di **Kruskal-Wallis e Test di Dunn**")
                 kw = stats.kruskal(*[df[col].dropna() for col in df.columns])
                 st.write(f"**Kruskal-Wallis**: statistica = {kw.statistic:.4f}, p-value = {kw.pvalue:.4f}")
                 if kw.pvalue < 0.05:
-                    dunn = sp.posthoc_dunn(df, p_adjust='bonferroni')
+                    dunn = sp.posthoc_dunn(df_melted, val_col="Valore", group_col="Tesi", p_adjust='bonferroni')
                     st.subheader("📊 Test Post-Hoc: **Dunn con Bonferroni**")
                     st.dataframe(dunn, use_container_width=True)
+            else:
+                st.subheader("📉 Esecuzione di **Games-Howell**")
+                gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
+                st.dataframe(gh, use_container_width=True)
 else:
     st.sidebar.warning("📂 Carica un file Excel per procedere.")
