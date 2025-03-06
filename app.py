@@ -38,7 +38,7 @@ if uploaded_file:
         # 🔍 Test di normalità (Shapiro-Wilk)
         st.sidebar.subheader("📈 Test di Normalità e Varianza")
         st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
-
+        
         normality_results = {}
         for thesis in df.columns:
             stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
@@ -58,29 +58,44 @@ if uploaded_file:
         # 📌 Decisione su quale test eseguire
         df_melted = df.melt(var_name="Tesi", value_name="Valore")
 
-        if num_theses > 2 and variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
-            st.subheader("📉 Esecuzione di **ANOVA**")
-            anova = pg.anova(data=df_melted, dv="Valore", between="Tesi", detailed=True)
-            st.dataframe(anova, use_container_width=True)
+        if num_theses == 2:
+            st.subheader("📊 Confronto tra due tesi")
+            group1 = df.iloc[:, 0].dropna()
+            group2 = df.iloc[:, 1].dropna()
 
-            if anova["p-unc"].values[0] < 0.05:
-                st.write("✅ Il test ANOVA ha identificato almeno una differenza significativa tra le tesi (p-value = {:.4f}).".format(anova["p-unc"].values[0]))
-                st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
-                tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
-                tukey_df = pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0])
-                st.dataframe(tukey_df, use_container_width=True)
-
-                tukey_df.columns = ["group1", "group2", "meandiff", "p-adj", "lower", "upper", "reject"]
-                significant_pairs = tukey_df[tukey_df["reject"] == True]
-
-                if not significant_pairs.empty:
-                    st.write("✅ Il test di Tukey HSD evidenzia le seguenti tesi significativamente diverse:")
-                    for _, row in significant_pairs.iterrows():
-                        st.write(f"🔹 {row['group1']} vs {row['group2']} (p-value = {row['p-adj']:.4f})")
-                else:
-                    st.write("⚠️ Il test di Tukey HSD non ha rilevato differenze significative tra le tesi.")
+            if all(p > 0.05 for p in normality_results.values()) and variance_homogeneity:
+                stat_ttest, p_ttest = stats.ttest_ind(group1, group2, equal_var=True)
+                st.write(f"**T-test**: statistica = {stat_ttest:.4f}, p-value = {p_ttest:.4f}")
+            elif all(p > 0.05 for p in normality_results.values()) and not variance_homogeneity:
+                stat_welch, p_welch = stats.ttest_ind(group1, group2, equal_var=False)
+                st.write(f"**Welch's T-test**: statistica = {stat_welch:.4f}, p-value = {p_welch:.4f}")
             else:
-                st.write("⚠️ Il test ANOVA non ha identificato differenze significative tra le tesi (p-value = {:.4f}).".format(anova["p-unc"].values[0]))
-
+                stat_mann, p_mann = stats.mannwhitneyu(group1, group2, alternative="two-sided")
+                st.write(f"**Test di Mann-Whitney U**: statistica = {stat_mann:.4f}, p-value = {p_mann:.4f}")
+        elif num_theses > 2:
+            if variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
+                st.subheader("📉 Esecuzione di **ANOVA**")
+                anova = pg.anova(data=df_melted, dv="Valore", between="Tesi", detailed=True)
+                st.dataframe(anova, use_container_width=True)
+                if anova["p-unc"].values[0] < 0.05:
+                    st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
+                    tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
+                    st.dataframe(pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0]), use_container_width=True)
+            elif not variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
+                st.subheader("📉 Esecuzione di **Welch ANOVA e Games-Howell**")
+                welch = pg.welch_anova(data=df_melted, dv="Valore", between="Tesi")
+                st.dataframe(welch, use_container_width=True)
+                if welch["p-unc"].values[0] < 0.05:
+                    st.subheader("📊 Test Post-Hoc: **Games-Howell**")
+                    gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
+                    st.dataframe(gh, use_container_width=True)
+            else:
+                st.subheader("📉 Esecuzione di **Kruskal-Wallis e Test di Dunn**")
+                kw = stats.kruskal(*[df[col].dropna() for col in df.columns])
+                st.write(f"**Kruskal-Wallis**: statistica = {kw.statistic:.4f}, p-value = {kw.pvalue:.4f}")
+                if kw.pvalue < 0.05:
+                    dunn = sp.posthoc_dunn(df, p_adjust='bonferroni')
+                    st.subheader("📊 Test Post-Hoc: **Dunn con Bonferroni**")
+                    st.dataframe(dunn, use_container_width=True)
 else:
     st.sidebar.warning("📂 Carica un file Excel per procedere.")
