@@ -36,48 +36,45 @@ if uploaded_file:
         st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
         # Funzione per calcolare il coefficiente di squilibrio
-def calcola_squilibrio(gruppi):
-    # Calcolo del coefficiente di squilibrio
-    max_n = max(gruppi)
-    min_n = min(gruppi)
-    squilibrio = max_n / min_n
-    return squilibrio
+        def calcola_squilibrio(gruppi):
+            max_n = max(gruppi)
+            min_n = min(gruppi)
+            squilibrio = max_n / min_n
+            return squilibrio
 
-# Funzione per il commento in base al coefficiente
-def commenta_squilibrio(squilibrio):
-    if squilibrio < 1.5:
-        return "I gruppi sono bilanciati."
-    elif 1.5 <= squilibrio <= 2:
-        return "Lo squilibrio è moderato."
-    else:
-        return "Lo squilibrio è forte, considerare l'uso di Welch ANOVA."
+        # Funzione per il commento in base al coefficiente
+        def commenta_squilibrio(squilibrio):
+            if squilibrio < 1.5:
+                return "I gruppi sono bilanciati."
+            elif 1.5 <= squilibrio <= 2:
+                return "Lo squilibrio è moderato."
+            else:
+                return "Lo squilibrio è forte, considerare l'uso di Welch ANOVA."
 
-# Crea una lista di numeri di osservazioni per i gruppi
-# Esempio: [10, 20, 30] (inserisci i tuoi dati)
-gruppi = [10, 20, 30]
+        # Crea una lista di numeri di osservazioni per i gruppi (esempio: [10, 20, 30])
+        gruppi = [10, 20, 30]
 
-# Calcola il coefficiente di squilibrio
-squilibrio = calcola_squilibrio(gruppi)
+        # Calcola il coefficiente di squilibrio
+        squilibrio = calcola_squilibrio(gruppi)
 
-# Scrivere il risultato nella barra laterale
-st.sidebar.header("Informazioni sul Bilanciamento")
-st.sidebar.write(f"Coefficiente di Squilibrio: {squilibrio:.2f}")
-st.sidebar.write(commenta_squilibrio(squilibrio))
+        # Scrivere il risultato nella barra laterale
+        st.sidebar.header("Informazioni sul Bilanciamento")
+        st.sidebar.write(f"Coefficiente di Squilibrio: {squilibrio:.2f}")
+        st.sidebar.write(commenta_squilibrio(squilibrio))
 
-# 🔍 Test di normalità (Shapiro-Wilk)
-st.sidebar.subheader("📈 Test di Normalità e Varianza")
-st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
+        # 🔍 Test di normalità (Shapiro-Wilk)
+        st.sidebar.subheader("📈 Test di Normalità e Varianza")
+        st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
 
-normality_results = {}
-for thesis in df.columns:
-    stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
-    normality_results[thesis] = p_value
+        normality_results = {}
+        for thesis in df.columns:
+            stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
+            normality_results[thesis] = p_value
 
-# 📊 Mostra risultati del test di normalità
-for thesis, p_val in normality_results.items():
-    result_text = "✅ Normale" if p_val > 0.05 else "⚠️ Non Normale"
-    st.sidebar.write(f"**{thesis}**: p = {p_val:.4f} ({result_text})")
-
+        # 📊 Mostra risultati del test di normalità
+        for thesis, p_val in normality_results.items():
+            result_text = "✅ Normale" if p_val > 0.05 else "⚠️ Non Normale"
+            st.sidebar.write(f"**{thesis}**: p = {p_val:.4f} ({result_text})")
 
         # 🔍 Test di Levene per la varianza
         stat_levene, p_levene = stats.levene(*[df[col].dropna() for col in df.columns])
@@ -97,6 +94,7 @@ for thesis, p_val in normality_results.items():
                     st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
                     tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
                     st.dataframe(pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0]), use_container_width=True)
+
             elif not variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
                 st.subheader("📉 Esecuzione di **Welch ANOVA e Games-Howell**")
                 welch = pg.welch_anova(data=df_melted, dv="Valore", between="Tesi")
@@ -105,6 +103,7 @@ for thesis, p_val in normality_results.items():
                     st.subheader("📊 Test Post-Hoc: **Games-Howell**")
                     gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
                     st.dataframe(gh, use_container_width=True)
+
             elif variance_homogeneity and any(p <= 0.05 for p in normality_results.values()):
                 st.subheader("📉 Esecuzione di **Kruskal-Wallis e Test di Dunn**")
                 kw = stats.kruskal(*[df[col].dropna() for col in df.columns])
@@ -113,9 +112,11 @@ for thesis, p_val in normality_results.items():
                     dunn = sp.posthoc_dunn(df_melted, val_col="Valore", group_col="Tesi", p_adjust='bonferroni')
                     st.subheader("📊 Test Post-Hoc: **Dunn con Bonferroni**")
                     st.dataframe(dunn, use_container_width=True)
+
             else:
                 st.subheader("📉 Esecuzione di **Games-Howell**")
                 gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
                 st.dataframe(gh, use_container_width=True)
+
 else:
     st.sidebar.warning("📂 Carica un file Excel per procedere.")
