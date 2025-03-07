@@ -35,18 +35,18 @@ if uploaded_file:
         st.sidebar.subheader("📊 Panoramica del Dataset")
         st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
-        # 🔢 Calcola il numero di osservazioni per ogni tesi (escludendo NaN)
-        gruppi = [df[col].dropna().shape[0] for col in df.columns]
+        # 🔢 Conta il numero effettivo di osservazioni per ciascuna tesi, includendo le righe vuote
+        num_osservazioni = [df[col].count() for col in df.columns]  # Conta solo le celle non vuote
 
         # Calcola il coefficiente di squilibrio
-        if len(set(gruppi)) > 1:  # Se almeno un gruppo ha dimensione diversa
-            squilibrio = max(gruppi) / min(gruppi)
+        if len(set(num_osservazioni)) > 1:  # Se almeno un gruppo ha dimensione diversa
+            squilibrio = max(num_osservazioni) / min(num_osservazioni)
         else:
             squilibrio = 1  # Nessuno squilibrio se tutte le tesi hanno lo stesso numero di osservazioni
 
         # 📌 Mostra il risultato nella sidebar
         st.sidebar.header("Informazioni sul Bilanciamento")
-        st.sidebar.write(f"🔢 Numero osservazioni per tesi: {gruppi}")
+        st.sidebar.write(f"🔢 Numero osservazioni per tesi: {num_osservazioni}")
         st.sidebar.write(f"⚖️ Coefficiente di Squilibrio: {squilibrio:.2f}")
 
         # 🔍 Fornisce il commento
