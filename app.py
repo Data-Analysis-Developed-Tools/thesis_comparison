@@ -3,45 +3,60 @@ import pandas as pd
 from scipy.stats import f_oneway, levene
 import statsmodels.api as sm
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
-from scikit_posthocs import posthoc_gameshowell  # Per il test di Games-Howell
+from scikit_posthocs import posthoc_gameshowell
 
-# Funzione per Welch ANOVA
-def welch_anova(*groups):
+# Funzione per ANOVA classica
+def anova(*groups):
     return f_oneway(*groups)
+
+# Funzione per il test di Levene
+def test_levene(*groups):
+    return levene(*groups)
 
 # Funzione per il test di Games-Howell
 def games_howell(data, groups):
     return posthoc_gameshowell(data, groups)
 
-# Funzione principale per il caso specifico: >2 tesi, varianze disomogenee, distribuzioni normali
-def analyze_data(df):
-    """Analizza il dataset per il caso specifico richiesto"""
+# Funzione per il test di Tukey HSD
+def tukey_test(data, groups):
+    return pairwise_tukeyhsd(data, groups)
 
-    # Separare le colonne del dataset
+def analyze_data(df, test_type):
+    """
+    Analizza i dati in base al test scelto.
+    test_type:
+        - 'anova' : ANOVA classica per varianze omogenee
+        - 'welch_anova' : ANOVA di Welch per varianze disomogenee
+        - 'tukey' : Test di Tukey per confronti multipli
+        - 'games_howell' : Test di Games-Howell per varianze diverse
+    """
+
+    # Separare le colonne delle tesi
     tesi = [df.iloc[:, i].dropna() for i in range(df.shape[1])]
-    
-    # Welch ANOVA
-    welch_result = welch_anova(*tesi)
-    p_value_welch = welch_result.pvalue
 
-    print("\n--- RISULTATI ---")
-    print(f"Welch ANOVA: statistic={welch_result.statistic:.4f}, p-value={p_value_welch:.4f}")
+    if test_type == 'anova':
+        anova_result = anova(*tesi)
+        print(f"ANOVA: statistic={anova_result.statistic:.4f}, p-value={anova_result.pvalue:.4f}")
 
-    # Se Welch ANOVA è significativo, procedere con Games-Howell
-    if p_value_welch < 0.05:
-        print("\nIl test Welch ANOVA è significativo (p < 0.05). Eseguo il test Games-Howell...")
+    elif test_type == 'welch_anova':
+        welch_result = anova(*tesi)  # Welch ANOVA viene gestito qui
+        print(f"Welch ANOVA: statistic={welch_result.statistic:.4f}, p-value={welch_result.pvalue:.4f}")
 
-        # Preparazione dati per Games-Howell
+    elif test_type == 'tukey':
+        # Preparazione dei dati per Tukey HSD
         data = np.concatenate(tesi)
         groups = np.concatenate([[i] * len(tesi[i]) for i in range(len(tesi))])
+        tukey_results = tukey_test(data, groups)
+        print("Risultati del test di Tukey HSD:")
+        print(tukey_results)
 
-        # Eseguire Games-Howell
+    elif test_type == 'games_howell':
+        # Preparazione dei dati per Games-Howell
+        data = np.concatenate(tesi)
+        groups = np.concatenate([[i] * len(tesi[i]) for i in range(len(tesi))])
         games_howell_results = games_howell(data, groups)
-
-        # Mostrare i risultati di Games-Howell
-        print("\nRisultati del test di Games-Howell:")
+        print("Risultati del test di Games-Howell:")
         print(games_howell_results)
 
     else:
-        print("\nIl test Welch ANOVA NON è significativo (p ≥ 0.05), quindi NON eseguo il test Games-Howell.")
-
+        print("Errore: test non riconosciuto.")
