@@ -39,6 +39,11 @@ if uploaded_file:
         st.write("Conteggio valori non nulli per ogni tesi:")
         st.write(df.count())  # Conta solo valori non nulli
 
+        # Verifica se ci sono NaN effettivi nelle colonne
+        st.write("Conteggio valori nulli per ogni tesi:")
+        st.write(df.isna().sum())  # Conta i NaN in ogni colonna
+
+
         # Calcola il coefficiente di squilibrio
         if len(set(num_osservazioni)) > 1:  # Se almeno un gruppo ha dimensione diversa
             squilibrio = max(num_osservazioni) / min(num_osservazioni)
