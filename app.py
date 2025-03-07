@@ -19,6 +19,34 @@ st.sidebar.markdown("""
 - Il **nome della tesi** deve essere nella prima riga
 - **Nessuna intestazione** per le righe di ripetizione
 """)
+# Funzione per calcolare il coefficiente di squilibrio
+def calcola_squilibrio(gruppi):
+    # Calcolo del coefficiente di squilibrio
+    max_n = max(gruppi)
+    min_n = min(gruppi)
+    squilibrio = max_n / min_n
+    return squilibrio
+
+# Funzione per il commento in base al coefficiente
+def commenta_squilibrio(squilibrio):
+    if squilibrio < 1.5:
+        return "I gruppi sono bilanciati."
+    elif 1.5 <= squilibrio <= 2:
+        return "Lo squilibrio è moderato."
+    else:
+        return "Lo squilibrio è forte, considerare l'uso di Welch ANOVA."
+
+# Crea una lista di numeri di osservazioni per i gruppi
+# Esempio: [10, 20, 30] (inserisci i tuoi dati)
+gruppi = [10, 20, 30]
+
+# Calcola il coefficiente di squilibrio
+squilibrio = calcola_squilibrio(gruppi)
+
+# Scrivere il risultato nella barra laterale
+st.sidebar.header("Informazioni sul Bilanciamento")
+st.sidebar.write(f"Coefficiente di Squilibrio: {squilibrio:.2f}")
+st.sidebar.write(commenta_squilibrio(squilibrio))
 
 # 📂 Caricamento file
 uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
