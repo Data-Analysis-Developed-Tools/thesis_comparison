@@ -35,24 +35,23 @@ if uploaded_file:
         st.sidebar.subheader("📊 Panoramica del Dataset")
         st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
-        # Mostrare il conteggio dei valori non nulli per ogni colonna
-        st.write("Conteggio valori non nulli per ogni tesi:")
-        st.write(df.count())  # Conta solo valori non nulli
+        # 🔄 Assicuriamoci che le celle vuote o con spazi vengano convertite in veri NaN
+        df = df.applymap(lambda x: None if pd.isna(x) or str(x).strip() == "" else x)
 
-        # Verifica se ci sono NaN effettivi nelle colonne
-        st.write("Conteggio valori nulli per ogni tesi:")
-        st.write(df.isna().sum())  # Conta i NaN in ogni colonna
-
-
-        # Calcola il coefficiente di squilibrio
-        if len(set(num_osservazioni)) > 1:  # Se almeno un gruppo ha dimensione diversa
-            squilibrio = max(num_osservazioni) / min(num_osservazioni)
-        else:
-            squilibrio = 1  # Nessuno squilibrio se tutte le tesi hanno lo stesso numero di osservazioni
+        # 🔢 Conta il numero effettivo di osservazioni per ciascuna tesi (solo valori non nulli)
+        num_osservazioni = [df[col].count() for col in df.columns]  # Conta solo celle non vuote
+        num_osservazioni = [int(n) for n in num_osservazioni]  # Converte np.int64 in int normale
 
         # 📌 Mostra il risultato nella sidebar
         st.sidebar.header("Informazioni sul Bilanciamento")
         st.sidebar.write(f"🔢 Numero osservazioni per tesi: {num_osservazioni}")
+
+        # 📊 Calcolo del coefficiente di squilibrio
+        if len(set(num_osservazioni)) > 1:  # Se almeno un gruppo ha dimensione diversa
+            squilibrio = max(num_osservazioni) / min(num_osservazioni)
+        else:
+            squilibrio = 1  # Nessuno squilibrio se tutte le tesi hanno lo stesso numero di osservazioni
+        
         st.sidebar.write(f"⚖️ Coefficiente di Squilibrio: {squilibrio:.2f}")
 
         # 🔍 Fornisce il commento
