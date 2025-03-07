@@ -64,19 +64,20 @@ st.sidebar.header("Informazioni sul Bilanciamento")
 st.sidebar.write(f"Coefficiente di Squilibrio: {squilibrio:.2f}")
 st.sidebar.write(commenta_squilibrio(squilibrio))
 
-        # 🔍 Test di normalità (Shapiro-Wilk)
-        st.sidebar.subheader("📈 Test di Normalità e Varianza")
-        st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
-        
-        normality_results = {}
-        for thesis in df.columns:
-            stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
-            normality_results[thesis] = p_value
+# 🔍 Test di normalità (Shapiro-Wilk)
+st.sidebar.subheader("📈 Test di Normalità e Varianza")
+st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
 
-        # 📊 Mostra risultati del test di normalità
-        for thesis, p_val in normality_results.items():
-            result_text = "✅ Normale" if p_val > 0.05 else "⚠️ Non Normale"
-            st.sidebar.write(f"**{thesis}**: p = {p_val:.4f} ({result_text})")
+normality_results = {}
+for thesis in df.columns:
+    stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
+    normality_results[thesis] = p_value
+
+# 📊 Mostra risultati del test di normalità
+for thesis, p_val in normality_results.items():
+    result_text = "✅ Normale" if p_val > 0.05 else "⚠️ Non Normale"
+    st.sidebar.write(f"**{thesis}**: p = {p_val:.4f} ({result_text})")
+
 
         # 🔍 Test di Levene per la varianza
         stat_levene, p_levene = stats.levene(*[df[col].dropna() for col in df.columns])
