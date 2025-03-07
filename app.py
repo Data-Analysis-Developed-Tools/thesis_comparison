@@ -1,91 +1,45 @@
-import streamlit as st
+import numpy as np
 import pandas as pd
-import scipy.stats as stats
+from scipy.stats import f_oneway, levene
 import statsmodels.api as sm
-import statsmodels.stats.multicomp as mc
-import pingouin as pg
-import scikit_posthocs as sp  # Per il test di Dunn
-from data_loader import load_data
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 
-# 🌟 Titolo principale con dimensione doppia
-st.markdown("<h1 style='text-align: center; font-size: 170%;'>📊 Confronto tra Tesi</h1>", unsafe_allow_html=True)
+def welch_anova(*groups):
+    """Esegue il test Welch ANOVA"""
+    return f_oneway(*groups)
 
-# 📂 Sidebar - Caricamento file
-st.sidebar.header("⚙️ Impostazioni")
+def games_howell(data, groups):
+    """Esegue il test di Games-Howell"""
+    from scikit_posthocs import posthoc_gameshowell
+    return posthoc_gameshowell(data, groups)
 
-# 📌 Istruzioni nella sidebar
-st.sidebar.markdown("""
-📌 **Istruzioni:**
-- Il **nome della tesi** deve essere nella prima riga
-- **Nessuna intestazione** per le righe di ripetizione
-""")
+def analyze_data(df):
+    """Analizza il dataset per il caso specifico: >2 tesi, varianze disomogenee, distribuzioni normali"""
 
-# 📂 Caricamento file
-uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
+    # Separare le colonne del dataset
+    tesi = [df.iloc[:, i].dropna() for i in range(df.shape[1])]
+    
+    # Test di Welch ANOVA
+    welch_result = welch_anova(*tesi)
+    p_value_welch = welch_result.pvalue
+    
+    # Mostrare il risultato di Welch ANOVA
+    print(f"Welch ANOVA: statistic={welch_result.statistic}, p-value={p_value_welch}")
 
-# 🔍 Controllo se il file è stato caricato
-if uploaded_file:
-    df = load_data(uploaded_file)  # 📂 Carica i dati
+    # Se Welch ANOVA è significativo, eseguire Games-Howell
+    if p_value_welch < 0.05:
+        print("Il test Welch ANOVA è significativo (p < 0.05), eseguo il test Games-Howell.")
 
-    if df is not None and not df.empty:
-        st.write("✅ **Dati caricati con successo!**")
-        st.write(df.head())  # Mostra anteprima dei dati
+        # Preparazione dei dati per Games-Howell
+        data = np.concatenate(tesi)
+        groups = np.concatenate([[i] * len(tesi[i]) for i in range(len(tesi))])
 
-        num_theses = len(df.columns)
-        st.sidebar.subheader("📊 Panoramica del Dataset")
-        st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
-
-        # 🔍 Test di normalità (Shapiro-Wilk)
-        st.sidebar.subheader("📈 Test di Normalità e Varianza")
-        st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
+        # Eseguire Games-Howell
+        games_howell_results = games_howell(data, groups)
         
-        normality_results = {}
-        for thesis in df.columns:
-            stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
-            normality_results[thesis] = p_value
+        # Mostrare i risultati di Games-Howell
+        print("Risultati del test di Games-Howell:")
+        print(games_howell_results)
+    else:
+        print("Il test Welch ANOVA NON è significativo (p ≥ 0.05), quindi NON eseguo il test Games-Howell.")
 
-        # 📊 Mostra risultati del test di normalità
-        for thesis, p_val in normality_results.items():
-            result_text = "✅ Normale" if p_val > 0.05 else "⚠️ Non Normale"
-            st.sidebar.write(f"**{thesis}**: p = {p_val:.4f} ({result_text})")
-
-        # 🔍 Test di Levene per la varianza
-        stat_levene, p_levene = stats.levene(*[df[col].dropna() for col in df.columns])
-        variance_homogeneity = p_levene > 0.05
-        levene_result_text = "✅ Varianze omogenee" if variance_homogeneity else "⚠️ Varianze eterogenee"
-        st.sidebar.write(f"**Test di Levene**: p = {p_levene:.4f} ({levene_result_text})")
-
-        # 📌 Decisione su quale test eseguire
-        df_melted = df.melt(var_name="Tesi", value_name="Valore")
-
-        if num_theses > 2:
-            if variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
-                st.subheader("📉 Esecuzione di **ANOVA**")
-                anova = pg.anova(data=df_melted, dv="Valore", between="Tesi", detailed=True)
-                st.dataframe(anova, use_container_width=True)
-                if anova["p-unc"].values[0] < 0.05:
-                    st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
-                    tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
-                    st.dataframe(pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0]), use_container_width=True)
-            elif not variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
-                st.subheader("📉 Esecuzione di **Welch ANOVA e Games-Howell**")
-                welch = pg.welch_anova(data=df_melted, dv="Valore", between="Tesi")
-                st.dataframe(welch, use_container_width=True)
-                if welch["p-unc"].values[0] < 0.05:
-                    st.subheader("📊 Test Post-Hoc: **Games-Howell**")
-                    gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
-                    st.dataframe(gh, use_container_width=True)
-            elif variance_homogeneity and any(p <= 0.05 for p in normality_results.values()):
-                st.subheader("📉 Esecuzione di **Kruskal-Wallis e Test di Dunn**")
-                kw = stats.kruskal(*[df[col].dropna() for col in df.columns])
-                st.write(f"**Kruskal-Wallis**: statistica = {kw.statistic:.4f}, p-value = {kw.pvalue:.4f}")
-                if kw.pvalue < 0.05:
-                    dunn = sp.posthoc_dunn(df_melted, val_col="Valore", group_col="Tesi", p_adjust='bonferroni')
-                    st.subheader("📊 Test Post-Hoc: **Dunn con Bonferroni**")
-                    st.dataframe(dunn, use_container_width=True)
-            else:
-                st.subheader("📉 Esecuzione di **Games-Howell**")
-                gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
-                st.dataframe(gh, use_container_width=True)
-else:
-    st.sidebar.warning("📂 Carica un file Excel per procedere.")
