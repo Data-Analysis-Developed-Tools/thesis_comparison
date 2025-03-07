@@ -35,13 +35,9 @@ if uploaded_file:
         st.sidebar.subheader("📊 Panoramica del Dataset")
         st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
-        # 🔢 Conta il numero effettivo di osservazioni per ciascuna tesi, includendo le righe vuote
-        num_osservazioni = [df[col].count() for col in df.columns]  # Conta solo le celle non vuote
-
         # Mostrare il conteggio dei valori non nulli per ogni colonna
         st.write("Conteggio valori non nulli per ogni tesi:")
         st.write(df.count())  # Conta solo valori non nulli
-
 
         # Calcola il coefficiente di squilibrio
         if len(set(num_osservazioni)) > 1:  # Se almeno un gruppo ha dimensione diversa
