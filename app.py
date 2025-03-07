@@ -19,7 +19,23 @@ st.sidebar.markdown("""
 - Il **nome della tesi** deve essere nella prima riga
 - **Nessuna intestazione** per le righe di ripetizione
 """)
-# Funzione per calcolare il coefficiente di squilibrio
+
+# 📂 Caricamento file
+uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
+
+# 🔍 Controllo se il file è stato caricato
+if uploaded_file:
+    df = load_data(uploaded_file)  # 📂 Carica i dati
+
+    if df is not None and not df.empty:
+        st.write("✅ **Dati caricati con successo!**")
+        st.write(df.head())  # Mostra anteprima dei dati
+
+        num_theses = len(df.columns)
+        st.sidebar.subheader("📊 Panoramica del Dataset")
+        st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
+
+        # Funzione per calcolare il coefficiente di squilibrio
 def calcola_squilibrio(gruppi):
     # Calcolo del coefficiente di squilibrio
     max_n = max(gruppi)
@@ -47,21 +63,6 @@ squilibrio = calcola_squilibrio(gruppi)
 st.sidebar.header("Informazioni sul Bilanciamento")
 st.sidebar.write(f"Coefficiente di Squilibrio: {squilibrio:.2f}")
 st.sidebar.write(commenta_squilibrio(squilibrio))
-
-# 📂 Caricamento file
-uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
-
-# 🔍 Controllo se il file è stato caricato
-if uploaded_file:
-    df = load_data(uploaded_file)  # 📂 Carica i dati
-
-    if df is not None and not df.empty:
-        st.write("✅ **Dati caricati con successo!**")
-        st.write(df.head())  # Mostra anteprima dei dati
-
-        num_theses = len(df.columns)
-        st.sidebar.subheader("📊 Panoramica del Dataset")
-        st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
         # 🔍 Test di normalità (Shapiro-Wilk)
         st.sidebar.subheader("📈 Test di Normalità e Varianza")
