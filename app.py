@@ -1,62 +1,91 @@
-import numpy as np
+import streamlit as st
 import pandas as pd
-from scipy.stats import f_oneway, levene
+import scipy.stats as stats
 import statsmodels.api as sm
-from statsmodels.stats.multicomp import pairwise_tukeyhsd
-from scikit_posthocs import posthoc_gameshowell
+import statsmodels.stats.multicomp as mc
+import pingouin as pg
+import scikit_posthocs as sp  # Per il test di Dunn
+from data_loader import load_data
 
-# Funzione per ANOVA classica
-def anova(*groups):
-    return f_oneway(*groups)
+# 🌟 Titolo principale con dimensione doppia
+st.markdown("<h1 style='text-align: center; font-size: 170%;'>📊 Confronto tra Tesi</h1>", unsafe_allow_html=True)
 
-# Funzione per il test di Levene
-def test_levene(*groups):
-    return levene(*groups)
+# 📂 Sidebar - Caricamento file
+st.sidebar.header("⚙️ Impostazioni")
 
-# Funzione per il test di Games-Howell
-def games_howell(data, groups):
-    return posthoc_gameshowell(data, groups)
+# 📌 Istruzioni nella sidebar
+st.sidebar.markdown("""
+📌 **Istruzioni:**
+- Il **nome della tesi** deve essere nella prima riga
+- **Nessuna intestazione** per le righe di ripetizione
+""")
 
-# Funzione per il test di Tukey HSD
-def tukey_test(data, groups):
-    return pairwise_tukeyhsd(data, groups)
+# 📂 Caricamento file
+uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
 
-def analyze_data(df, test_type):
-    """
-    Analizza i dati in base al test scelto.
-    test_type:
-        - 'anova' : ANOVA classica per varianze omogenee
-        - 'welch_anova' : ANOVA di Welch per varianze disomogenee
-        - 'tukey' : Test di Tukey per confronti multipli
-        - 'games_howell' : Test di Games-Howell per varianze diverse
-    """
+# 🔍 Controllo se il file è stato caricato
+if uploaded_file:
+    df = load_data(uploaded_file)  # 📂 Carica i dati
 
-    # Separare le colonne delle tesi
-    tesi = [df.iloc[:, i].dropna() for i in range(df.shape[1])]
+    if df is not None and not df.empty:
+        st.write("✅ **Dati caricati con successo!**")
+        st.write(df.head())  # Mostra anteprima dei dati
 
-    if test_type == 'anova':
-        anova_result = anova(*tesi)
-        print(f"ANOVA: statistic={anova_result.statistic:.4f}, p-value={anova_result.pvalue:.4f}")
+        num_theses = len(df.columns)
+        st.sidebar.subheader("📊 Panoramica del Dataset")
+        st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
-    elif test_type == 'welch_anova':
-        welch_result = anova(*tesi)  # Welch ANOVA viene gestito qui
-        print(f"Welch ANOVA: statistic={welch_result.statistic:.4f}, p-value={welch_result.pvalue:.4f}")
+        # 🔍 Test di normalità (Shapiro-Wilk)
+        st.sidebar.subheader("📈 Test di Normalità e Varianza")
+        st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
+        
+        normality_results = {}
+        for thesis in df.columns:
+            stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
+            normality_results[thesis] = p_value
 
-    elif test_type == 'tukey':
-        # Preparazione dei dati per Tukey HSD
-        data = np.concatenate(tesi)
-        groups = np.concatenate([[i] * len(tesi[i]) for i in range(len(tesi))])
-        tukey_results = tukey_test(data, groups)
-        print("Risultati del test di Tukey HSD:")
-        print(tukey_results)
+        # 📊 Mostra risultati del test di normalità
+        for thesis, p_val in normality_results.items():
+            result_text = "✅ Normale" if p_val > 0.05 else "⚠️ Non Normale"
+            st.sidebar.write(f"**{thesis}**: p = {p_val:.4f} ({result_text})")
 
-    elif test_type == 'games_howell':
-        # Preparazione dei dati per Games-Howell
-        data = np.concatenate(tesi)
-        groups = np.concatenate([[i] * len(tesi[i]) for i in range(len(tesi))])
-        games_howell_results = games_howell(data, groups)
-        print("Risultati del test di Games-Howell:")
-        print(games_howell_results)
+        # 🔍 Test di Levene per la varianza
+        stat_levene, p_levene = stats.levene(*[df[col].dropna() for col in df.columns])
+        variance_homogeneity = p_levene > 0.05
+        levene_result_text = "✅ Varianze omogenee" if variance_homogeneity else "⚠️ Varianze eterogenee"
+        st.sidebar.write(f"**Test di Levene**: p = {p_levene:.4f} ({levene_result_text})")
 
-    else:
-        print("Errore: test non riconosciuto.")
+        # 📌 Decisione su quale test eseguire
+        df_melted = df.melt(var_name="Tesi", value_name="Valore")
+
+        if num_theses > 2:
+            if variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
+                st.subheader("📉 Esecuzione di **ANOVA**")
+                anova = pg.anova(data=df_melted, dv="Valore", between="Tesi", detailed=True)
+                st.dataframe(anova, use_container_width=True)
+                if anova["p-unc"].values[0] < 0.05:
+                    st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
+                    tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
+                    st.dataframe(pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0]), use_container_width=True)
+            elif not variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
+                st.subheader("📉 Esecuzione di **Welch ANOVA e Games-Howell**")
+                welch = pg.welch_anova(data=df_melted, dv="Valore", between="Tesi")
+                st.dataframe(welch, use_container_width=True)
+                if welch["p-unc"].values[0] < 0.05:
+                    st.subheader("📊 Test Post-Hoc: **Games-Howell**")
+                    gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
+                    st.dataframe(gh, use_container_width=True)
+            elif variance_homogeneity and any(p <= 0.05 for p in normality_results.values()):
+                st.subheader("📉 Esecuzione di **Kruskal-Wallis e Test di Dunn**")
+                kw = stats.kruskal(*[df[col].dropna() for col in df.columns])
+                st.write(f"**Kruskal-Wallis**: statistica = {kw.statistic:.4f}, p-value = {kw.pvalue:.4f}")
+                if kw.pvalue < 0.05:
+                    dunn = sp.posthoc_dunn(df_melted, val_col="Valore", group_col="Tesi", p_adjust='bonferroni')
+                    st.subheader("📊 Test Post-Hoc: **Dunn con Bonferroni**")
+                    st.dataframe(dunn, use_container_width=True)
+            else:
+                st.subheader("📉 Esecuzione di **Games-Howell**")
+                gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
+                st.dataframe(gh, use_container_width=True)
+else:
+    st.sidebar.warning("📂 Carica un file Excel per procedere.")
