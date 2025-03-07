@@ -35,32 +35,29 @@ if uploaded_file:
         st.sidebar.subheader("📊 Panoramica del Dataset")
         st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
-        # Funzione per calcolare il coefficiente di squilibrio
-        def calcola_squilibrio(gruppi):
-            max_n = max(gruppi)
-            min_n = min(gruppi)
-            squilibrio = max_n / min_n
-            return squilibrio
-
-        # Funzione per il commento in base al coefficiente
-        def commenta_squilibrio(squilibrio):
-            if squilibrio < 1.5:
-                return "I gruppi sono bilanciati."
-            elif 1.5 <= squilibrio <= 2:
-                return "Lo squilibrio è moderato."
-            else:
-                return "Lo squilibrio è forte, considerare l'uso di Welch ANOVA."
-
-        # Crea una lista di numeri di osservazioni per i gruppi (esempio: [10, 20, 30])
-        gruppi = [10, 20, 30]
+        # 🔢 Calcola il numero di osservazioni per ogni tesi (escludendo NaN)
+        gruppi = [df[col].dropna().shape[0] for col in df.columns]
 
         # Calcola il coefficiente di squilibrio
-        squilibrio = calcola_squilibrio(gruppi)
+        if len(set(gruppi)) > 1:  # Se almeno un gruppo ha dimensione diversa
+            squilibrio = max(gruppi) / min(gruppi)
+        else:
+            squilibrio = 1  # Nessuno squilibrio se tutte le tesi hanno lo stesso numero di osservazioni
 
-        # Scrivere il risultato nella barra laterale
+        # 📌 Mostra il risultato nella sidebar
         st.sidebar.header("Informazioni sul Bilanciamento")
-        st.sidebar.write(f"Coefficiente di Squilibrio: {squilibrio:.2f}")
-        st.sidebar.write(commenta_squilibrio(squilibrio))
+        st.sidebar.write(f"🔢 Numero osservazioni per tesi: {gruppi}")
+        st.sidebar.write(f"⚖️ Coefficiente di Squilibrio: {squilibrio:.2f}")
+
+        # 🔍 Fornisce il commento
+        if squilibrio < 1.5:
+            commento = "✅ I gruppi sono bilanciati."
+        elif 1.5 <= squilibrio <= 2:
+            commento = "⚠️ Lo squilibrio è moderato."
+        else:
+            commento = "❗ Lo squilibrio è forte, considerare l'uso di Welch ANOVA."
+
+        st.sidebar.write(commento)
 
         # 🔍 Test di normalità (Shapiro-Wilk)
         st.sidebar.subheader("📈 Test di Normalità e Varianza")
