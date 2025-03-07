@@ -38,7 +38,7 @@ if uploaded_file:
         # 🔍 Test di normalità (Shapiro-Wilk)
         st.sidebar.subheader("📈 Test di Normalità e Varianza")
         st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
-
+        
         normality_results = {}
         for thesis in df.columns:
             stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
@@ -67,7 +67,6 @@ if uploaded_file:
                     st.subheader("📊 Test Post-Hoc: **Tukey HSD**")
                     tukey = mc.pairwise_tukeyhsd(df_melted["Valore"], df_melted["Tesi"])
                     st.dataframe(pd.DataFrame(data=tukey.summary().data[1:], columns=tukey.summary().data[0]), use_container_width=True)
-
             elif not variance_homogeneity and all(p > 0.05 for p in normality_results.values()):
                 st.subheader("📉 Esecuzione di **Welch ANOVA e Games-Howell**")
                 welch = pg.welch_anova(data=df_melted, dv="Valore", between="Tesi")
@@ -76,7 +75,6 @@ if uploaded_file:
                     st.subheader("📊 Test Post-Hoc: **Games-Howell**")
                     gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
                     st.dataframe(gh, use_container_width=True)
-
             elif variance_homogeneity and any(p <= 0.05 for p in normality_results.values()):
                 st.subheader("📉 Esecuzione di **Kruskal-Wallis e Test di Dunn**")
                 kw = stats.kruskal(*[df[col].dropna() for col in df.columns])
@@ -85,11 +83,9 @@ if uploaded_file:
                     dunn = sp.posthoc_dunn(df_melted, val_col="Valore", group_col="Tesi", p_adjust='bonferroni')
                     st.subheader("📊 Test Post-Hoc: **Dunn con Bonferroni**")
                     st.dataframe(dunn, use_container_width=True)
-
             else:
                 st.subheader("📉 Esecuzione di **Games-Howell**")
                 gh = pg.pairwise_gameshowell(data=df_melted, dv="Valore", between="Tesi")
                 st.dataframe(gh, use_container_width=True)
-
 else:
     st.sidebar.warning("📂 Carica un file Excel per procedere.")
