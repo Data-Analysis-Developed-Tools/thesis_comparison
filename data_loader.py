@@ -19,6 +19,12 @@ def preliminary_tests(df):
     st.sidebar.subheader("📊 Panoramica del Dataset")
     st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
+    # 🔍 Conta le osservazioni non nulle per ogni tesi
+    st.sidebar.subheader("📊 Numero di Osservazioni per Tesi")
+    observations_per_thesis = df.count()
+    for thesis, count in observations_per_thesis.items():
+        st.sidebar.write(f"**{thesis}**: {count} osservazioni")
+
     # 🔍 Test di normalità (Shapiro-Wilk)
     st.sidebar.subheader("📈 Test di Normalità e Varianza")
     st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
