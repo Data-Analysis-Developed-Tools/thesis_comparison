@@ -83,6 +83,7 @@ if df is not None and st.session_state["confidence_level"] is not None:
     def preliminary_tests(df):
         """Esegue i test preliminari e salva i risultati."""
         
+        num_theses = len(df.columns)  # Numero di tesi
         observations_per_thesis = {col: df[col].notna().sum() for col in df.columns}
         obs_values = list(observations_per_thesis.values())
         imbalance_index = imbalance_coefficient(obs_values)
@@ -92,6 +93,7 @@ if df is not None and st.session_state["confidence_level"] is not None:
         levene_stat, levene_p = stats.levene(*[df[col].dropna() for col in df.columns])
 
         return {
+            "num_theses": num_theses,
             "observations": observations_per_thesis,
             "imbalance_index": imbalance_index,
             "normality_results": normality_results,
@@ -104,4 +106,18 @@ if df is not None and st.session_state["confidence_level"] is not None:
     # ✅ Passa i dati ad `app.py`
     st.session_state["final_data"] = df  # Salva il dataframe
     st.session_state["preliminary_tests"] = test_results  # Salva i risultati dei test
-    st.sidebar.success("✅ Test preliminari completati! Passa ad `app.py`.")
+
+    # 📌 Visualizza i risultati nella sidebar
+    st.sidebar.success("✅ Test preliminari completati!")
+    st.sidebar.write(f"📊 **Numero di tesi a confronto:** {test_results['num_theses']}")
+    st.sidebar.write(f"⚖️ **Indice di Squilibrio (I):** {test_results['imbalance_index']:.4f}")
+
+    levene_text = "✅ Varianze omogenee" if test_results["levene_p"] > alpha else "⚠️ Varianze eterogenee"
+    st.sidebar.write(f"📏 **Test di Levene (omogeneità della varianza):** p = {test_results['levene_p']:.4f} ({levene_text})")
+
+    st.sidebar.subheader("📈 **Test di Normalità (Shapiro-Wilk)**")
+    for thesis, p_value in test_results["normality_results"].items():
+        result_text = "✅ Normale" if p_value > alpha else "⚠️ Non Normale"
+        st.sidebar.write(f"**{thesis}**: p = {p_value:.4f} ({result_text})")
+
+    st.sidebar.info("Passa ad `app.py` per continuare l'analisi statistica!")
