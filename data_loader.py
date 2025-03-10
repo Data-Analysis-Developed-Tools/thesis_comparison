@@ -4,7 +4,7 @@ import scipy.stats as stats
 
 # 🛠️ Inizializza `session_state`
 if "final_data" not in st.session_state:
-    st.session_state["final_data"] = None  # Dati definitivi per `app.py`
+    st.session_state["final_data"] = None
 
 if "confidence_level" not in st.session_state:
     st.session_state["confidence_level"] = None
@@ -54,7 +54,7 @@ if st.session_state["file_uploaded"]:
 
         if st.sidebar.button("✅ Conferma Livello di Confidenza"):
             st.session_state["confidence_level"] = confidence_options[selected_confidence]
-            st.experimental_rerun()
+            st.rerun()  # 🔄 Usa la nuova funzione al posto di experimental_rerun()
 
     else:
         st.sidebar.success(f"✅ Livello di confidenza selezionato: {selected_confidence}")
@@ -103,4 +103,3 @@ if df is not None and st.session_state["confidence_level"] is not None:
     st.session_state["final_data"] = df  # Salva il dataframe
     st.session_state["preliminary_tests"] = test_results  # Salva i risultati dei test
     st.sidebar.success("✅ Test preliminari completati! Passa ad `app.py`.")
-
