@@ -2,21 +2,31 @@ import pandas as pd
 import streamlit as st
 import scipy.stats as stats
 
-# 📌 Reset automatico se il file viene rimosso
-if "confidence_level" not in st.session_state or st.session_state.get("file_uploaded") is False:
+# Inizializza lo stato se non è già presente
+if "confidence_level" not in st.session_state:
     st.session_state["confidence_level"] = 0.05  # Default: 95%
-    st.session_state["file_uploaded"] = False  # Indica che il file non è ancora stato caricato
 
-# 🔍 Selezione del livello di confidenza
+if "file_uploaded" not in st.session_state:
+    st.session_state["file_uploaded"] = False  # Controlla se un file è caricato
+
+# 📌 Sidebar: Selezione del livello di confidenza
 st.sidebar.subheader("📊 Impostazioni Statistiche")
 confidence_options = {"90%": 0.10, "95%": 0.05, "99%": 0.01, "99.9%": 0.001}
+
+# 🔹 Se il file è stato rimosso, resetta la selezione al 95%
+if not st.session_state["file_uploaded"]:
+    default_index = 1  # Indice di "95%" nella lista
+else:
+    default_index = list(confidence_options.values()).index(st.session_state["confidence_level"])
+
 selected_confidence = st.sidebar.selectbox(
     "📊 Scegli il livello di confidenza statistica:",
     options=list(confidence_options.keys()),
-    index=1  # Default: 95%
+    index=default_index
 )
-alpha = confidence_options[selected_confidence]
-st.session_state["confidence_level"] = alpha  # Salviamo il valore scelto
+
+# Aggiorna il livello di confidenza in session_state
+st.session_state["confidence_level"] = confidence_options[selected_confidence]
 
 def load_data(uploaded_file):
     """Carica il file Excel e lo trasforma in DataFrame."""
@@ -78,6 +88,7 @@ def preliminary_tests(df):
     st.sidebar.subheader("📈 Test di Normalità e Varianza")
     st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
     
+    alpha = st.session_state["confidence_level"]  # Usa il livello di confidenza selezionato
     normality_results = {}
     for thesis in df.columns:
         stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
