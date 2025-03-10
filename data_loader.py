@@ -2,7 +2,12 @@ import pandas as pd
 import streamlit as st
 import scipy.stats as stats
 
-# 🔍 Selezione del livello di confidenza (sempre visibile)
+# 📌 Reset automatico se il file viene rimosso
+if "confidence_level" not in st.session_state or st.session_state.get("file_uploaded") is False:
+    st.session_state["confidence_level"] = 0.05  # Default: 95%
+    st.session_state["file_uploaded"] = False  # Indica che il file non è ancora stato caricato
+
+# 🔍 Selezione del livello di confidenza
 st.sidebar.subheader("📊 Impostazioni Statistiche")
 confidence_options = {"90%": 0.10, "95%": 0.05, "99%": 0.01, "99.9%": 0.001}
 selected_confidence = st.sidebar.selectbox(
@@ -15,11 +20,18 @@ st.session_state["confidence_level"] = alpha  # Salviamo il valore scelto
 
 def load_data(uploaded_file):
     """Carica il file Excel e lo trasforma in DataFrame."""
-    try:
-        df = pd.read_excel(uploaded_file)
-        return df  # Non rimuovo i NaN per non alterare il numero di osservazioni
-    except Exception as e:
-        st.error(f"❌ Errore nel caricamento del file: {e}")
+    if uploaded_file is not None:
+        try:
+            df = pd.read_excel(uploaded_file)
+            st.session_state["file_uploaded"] = True  # Conferma che il file è stato caricato
+            return df  # Non rimuovo i NaN per non alterare il numero di osservazioni
+        except Exception as e:
+            st.error(f"❌ Errore nel caricamento del file: {e}")
+            return None
+    else:
+        # Reset se il file viene rimosso
+        st.session_state["file_uploaded"] = False
+        st.session_state["confidence_level"] = 0.05  # Torna al default 95%
         return None
 
 def imbalance_coefficient(observations):
@@ -27,11 +39,9 @@ def imbalance_coefficient(observations):
     k = len(observations)
 
     if k == 2:
-        # Caso speciale per 2 gruppi: differenza relativa
         n1, n2 = observations
         I = abs(n1 - n2) / (n1 + n2) if (n1 + n2) > 0 else None
     else:
-        # Formula standard per k > 2
         mean_n = sum(observations) / k
         I = sum(abs(n - mean_n) for n in observations) / (k * mean_n) if mean_n > 0 else None
 
