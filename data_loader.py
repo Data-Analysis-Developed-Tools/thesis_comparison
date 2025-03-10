@@ -2,6 +2,17 @@ import pandas as pd
 import streamlit as st
 import scipy.stats as stats
 
+# 🔍 Selezione del livello di confidenza (sempre visibile)
+st.sidebar.subheader("📊 Impostazioni Statistiche")
+confidence_options = {"90%": 0.10, "95%": 0.05, "99%": 0.01, "99.9%": 0.001}
+selected_confidence = st.sidebar.selectbox(
+    "📊 Scegli il livello di confidenza statistica:",
+    options=list(confidence_options.keys()),
+    index=1  # Default: 95%
+)
+alpha = confidence_options[selected_confidence]
+st.session_state["confidence_level"] = alpha  # Salviamo il valore scelto
+
 def load_data(uploaded_file):
     """Carica il file Excel e lo trasforma in DataFrame."""
     try:
@@ -32,18 +43,6 @@ def preliminary_tests(df):
     num_theses = len(df.columns)
     st.sidebar.subheader("📊 Panoramica del Dataset")
     st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
-
-    # 🔍 Selezione del livello di confidenza
-    confidence_options = {"90%": 0.10, "95%": 0.05, "99%": 0.01, "99.9%": 0.001}
-    selected_confidence = st.sidebar.selectbox(
-        "📊 Scegli il livello di confidenza statistica:",
-        options=list(confidence_options.keys()),
-        index=1  # Default: 95%
-    )
-    alpha = confidence_options[selected_confidence]
-    
-    # 📌 Salviamo il valore scelto per poterlo usare anche in app.py
-    st.session_state["confidence_level"] = alpha
 
     # 🔍 Conta le osservazioni non nulle per ogni tesi
     st.sidebar.subheader("📊 Numero di Osservazioni per Tesi")
