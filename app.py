@@ -7,6 +7,8 @@ import pingouin as pg
 import scikit_posthocs as sp  # Per il test di Dunn
 from data_loader import load_data, preliminary_tests
 
+alpha = st.session_state.get("confidence_level", 0.05)  # Default: 0.05 (95%)
+
 # 🌟 Titolo principale con dimensione doppia
 st.markdown("<h1 style='text-align: center; font-size: 170%;'>📊 Confronto tra Tesi</h1>", unsafe_allow_html=True)
 
