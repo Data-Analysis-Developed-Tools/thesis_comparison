@@ -6,8 +6,7 @@ def load_data(uploaded_file):
     """Carica il file Excel e lo trasforma in DataFrame."""
     try:
         df = pd.read_excel(uploaded_file)
-        df = df.dropna()  # Rimuove i valori mancanti
-        return df
+        return df  # Non rimuovo i NaN per non alterare il numero di osservazioni
     except Exception as e:
         st.error(f"❌ Errore nel caricamento del file: {e}")
         return None
@@ -21,7 +20,7 @@ def preliminary_tests(df):
 
     # 🔍 Conta le osservazioni non nulle per ogni tesi
     st.sidebar.subheader("📊 Numero di Osservazioni per Tesi")
-    observations_per_thesis = df.count()
+    observations_per_thesis = {col: df[col].notna().sum() for col in df.columns}
     for thesis, count in observations_per_thesis.items():
         st.sidebar.write(f"**{thesis}**: {count} osservazioni")
 
