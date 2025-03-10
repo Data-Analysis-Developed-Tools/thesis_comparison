@@ -27,6 +27,12 @@ st.session_state["significance_level"] = sig_levels[selected_level]
 # Upload file
 uploaded_file = st.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
 
+# Controllo del cambio file e aggiornamento automatico
+if uploaded_file is not None:
+    if "uploaded_file" not in st.session_state or uploaded_file != st.session_state["uploaded_file"]:
+        st.session_state["uploaded_file"] = uploaded_file
+        st.experimental_rerun()  # Forza il refresh automatico quando viene caricato un nuovo file
+
 def load_data(uploaded_file):
     """Carica il file Excel e lo trasforma in DataFrame."""
     try:
@@ -37,7 +43,7 @@ def load_data(uploaded_file):
         st.error(f"❌ Errore nel caricamento del file: {e}")
         return None
 
-# Controllo sulla rimozione del file
+# Se il file è stato caricato, eseguire le analisi
 if uploaded_file is not None:
     df = load_data(uploaded_file)
     if df is not None:
