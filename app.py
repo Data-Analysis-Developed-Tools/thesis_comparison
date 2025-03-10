@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from scipy.stats import levene, shapiro
 
 # Opzioni per la significatività statistica
 sig_levels = {
@@ -43,6 +44,42 @@ if uploaded_file is not None:
         st.write("✅ **File caricato con successo!**")
         st.dataframe(df.head())  # Mostra un'anteprima del DataFrame
         st.write(f"🔬 **Livello di significatività selezionato:** {selected_level} (α = {st.session_state['significance_level']})")
+
+        # Verifica se ci sono almeno due colonne numeriche per il test di Levene
+        num_cols = df.select_dtypes(include=['number']).columns
+        if len(num_cols) < 2:
+            st.warning("⚠️ Sono necessarie almeno due colonne numeriche per il test di Levene.")
+        else:
+            # Test di Levene per l'uguaglianza delle varianze
+            st.subheader("📈 Test di Levene - Omogeneità delle Varianze")
+            group1 = df[num_cols[0]]
+            group2 = df[num_cols[1]]
+
+            levene_stat, levene_p = levene(group1, group2)
+            alpha = st.session_state["significance_level"]
+
+            st.write(f"**Statistiche test di Levene:** {levene_stat:.4f}")
+            st.write(f"**p-value:** {levene_p:.4f}")
+
+            if levene_p > alpha:
+                st.success(f"✅ Le varianze possono essere considerate uguali (p > {alpha})")
+            else:
+                st.error(f"❌ Le varianze sono significativamente diverse (p ≤ {alpha})")
+
+        # Test di Shapiro-Wilk per la normalità
+        st.subheader("📊 Test di Shapiro-Wilk - Normalità della Distribuzione")
+        
+        for col in num_cols:
+            shapiro_stat, shapiro_p = shapiro(df[col])
+            st.write(f"**Colonna:** {col}")
+            st.write(f"**Statistiche test di Shapiro-Wilk:** {shapiro_stat:.4f}")
+            st.write(f"**p-value:** {shapiro_p:.4f}")
+
+            if shapiro_p > alpha:
+                st.success(f"✅ I dati in '{col}' possono essere considerati normali (p > {alpha})")
+            else:
+                st.error(f"❌ I dati in '{col}' non seguono una distribuzione normale (p ≤ {alpha})")
+
 else:
     # Resetta il livello di significatività se il file viene rimosso
     if "significance_level" in st.session_state:
