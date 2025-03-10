@@ -33,6 +33,18 @@ def preliminary_tests(df):
     st.sidebar.subheader("📊 Panoramica del Dataset")
     st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
 
+    # 🔍 Selezione del livello di confidenza
+    confidence_options = {"90%": 0.10, "95%": 0.05, "99%": 0.01, "99.9%": 0.001}
+    selected_confidence = st.sidebar.selectbox(
+        "📊 Scegli il livello di confidenza statistica:",
+        options=list(confidence_options.keys()),
+        index=1  # Default: 95%
+    )
+    alpha = confidence_options[selected_confidence]
+    
+    # 📌 Salviamo il valore scelto per poterlo usare anche in app.py
+    st.session_state["confidence_level"] = alpha
+
     # 🔍 Conta le osservazioni non nulle per ogni tesi
     st.sidebar.subheader("📊 Numero di Osservazioni per Tesi")
     observations_per_thesis = {col: df[col].notna().sum() for col in df.columns}
@@ -53,23 +65,20 @@ def preliminary_tests(df):
         else:
             st.sidebar.error("❌ **Forte sbilanciamento**")
 
-    # 🔍 Test di normalità (Shapiro-Wilk)
+    # 🔍 Test di normalità (Shapiro-Wilk) usando il livello di confidenza selezionato
     st.sidebar.subheader("📈 Test di Normalità e Varianza")
     st.sidebar.write("🧪 **Test di Normalità usato: Shapiro-Wilk**")
     
     normality_results = {}
     for thesis in df.columns:
         stat, p_value = stats.shapiro(df[thesis].dropna())  # Rimuove i NaN prima del test
+        result_text = "✅ Normale" if p_value > alpha else "⚠️ Non Normale"
         normality_results[thesis] = p_value
+        st.sidebar.write(f"**{thesis}**: p = {p_value:.4f} ({result_text})")
 
-    # 📊 Mostra risultati del test di normalità
-    for thesis, p_val in normality_results.items():
-        result_text = "✅ Normale" if p_val > 0.05 else "⚠️ Non Normale"
-        st.sidebar.write(f"**{thesis}**: p = {p_val:.4f} ({result_text})")
-
-    # 🔍 Test di Levene per la varianza
+    # 🔍 Test di Levene per la varianza usando il livello di confidenza selezionato
     stat_levene, p_levene = stats.levene(*[df[col].dropna() for col in df.columns])
-    variance_homogeneity = p_levene > 0.05
+    variance_homogeneity = p_levene > alpha
     levene_result_text = "✅ Varianze omogenee" if variance_homogeneity else "⚠️ Varianze eterogenee"
     st.sidebar.write(f"**Test di Levene**: p = {p_levene:.4f} ({levene_result_text})")
 
