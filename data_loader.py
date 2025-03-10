@@ -54,10 +54,12 @@ if st.session_state["file_uploaded"]:
 
         if st.sidebar.button("✅ Conferma Livello di Confidenza"):
             st.session_state["confidence_level"] = confidence_options[selected_confidence]
-            st.rerun()  # 🔄 Usa la nuova funzione al posto di experimental_rerun()
+            st.rerun()  # 🔄 Forza il refresh dopo la conferma
 
     else:
-        st.sidebar.success(f"✅ Livello di confidenza selezionato: {selected_confidence}")
+        # ✅ Usa il valore memorizzato nel session state invece di una variabile non definita
+        confidence_display = [key for key, value in confidence_options.items() if value == st.session_state["confidence_level"]][0]
+        st.sidebar.success(f"✅ Livello di confidenza selezionato: {confidence_display}")
 
 # 🔹 Se il livello di confidenza non è stato selezionato, blocca il workflow
 if st.session_state["file_uploaded"] and st.session_state["confidence_level"] is None:
