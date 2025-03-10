@@ -2,32 +2,6 @@ import pandas as pd
 import streamlit as st
 import scipy.stats as stats
 
-# Inizializza lo stato se non è già presente
-if "confidence_level" not in st.session_state:
-    st.session_state["confidence_level"] = 0.05  # Default: 95%
-
-if "file_uploaded" not in st.session_state:
-    st.session_state["file_uploaded"] = False  # Controlla se un file è caricato
-
-# 📌 Sidebar: Selezione del livello di confidenza
-st.sidebar.subheader("📊 Impostazioni Statistiche")
-confidence_options = {"90%": 0.10, "95%": 0.05, "99%": 0.01, "99.9%": 0.001}
-
-# 🔹 Se il file è stato rimosso, resetta la selezione al 95%
-if not st.session_state["file_uploaded"]:
-    default_index = 1  # Indice di "95%" nella lista
-else:
-    default_index = list(confidence_options.values()).index(st.session_state["confidence_level"])
-
-selected_confidence = st.sidebar.selectbox(
-    "📊 Scegli il livello di confidenza statistica:",
-    options=list(confidence_options.keys()),
-    index=default_index
-)
-
-# Aggiorna il livello di confidenza in session_state
-st.session_state["confidence_level"] = confidence_options[selected_confidence]
-
 def load_data(uploaded_file):
     """Carica il file Excel e lo trasforma in DataFrame."""
     if uploaded_file is not None:
@@ -39,9 +13,8 @@ def load_data(uploaded_file):
             st.error(f"❌ Errore nel caricamento del file: {e}")
             return None
     else:
-        # Reset se il file viene rimosso
         st.session_state["file_uploaded"] = False
-        st.session_state["confidence_level"] = 0.05  # Torna al default 95%
+        st.session_state["confidence_level"] = None  # Resetta la scelta del livello di confidenza
         return None
 
 def imbalance_coefficient(observations):
@@ -103,3 +76,35 @@ def preliminary_tests(df):
     st.sidebar.write(f"**Test di Levene**: p = {p_levene:.4f} ({levene_result_text})")
 
     return normality_results, variance_homogeneity
+
+
+# 📂 Caricamento del file
+uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
+df = load_data(uploaded_file)
+
+# 🔍 Blocco dell'elaborazione finché il livello di confidenza non è confermato
+if df is not None:
+    st.sidebar.subheader("⚙️ Selezione del Livello di Confidenza")
+    
+    confidence_options = {"90%": 0.10, "95%": 0.05, "99%": 0.01, "99.9%": 0.001}
+    
+    if st.session_state.get("confidence_level") is None:
+        selected_confidence = st.sidebar.selectbox(
+            "📊 Scegli il livello di confidenza statistica:",
+            options=list(confidence_options.keys()),
+            index=1  # Default: 95%
+        )
+
+        if st.sidebar.button("✅ Conferma Livello di Confidenza"):
+            st.session_state["confidence_level"] = confidence_options[selected_confidence]
+            st.experimental_rerun()  # Forza il refresh della pagina dopo la conferma
+
+    else:
+        st.sidebar.success(f"✅ Livello di confidenza selezionato: {selected_confidence}")
+
+    if st.session_state.get("confidence_level") is None:
+        st.warning("⚠️ Seleziona il livello di confidenza per continuare.")
+        st.stop()
+
+    # ✅ Ora eseguiamo i test solo dopo che il livello di confidenza è stato confermato
+    preliminary_tests(df)
