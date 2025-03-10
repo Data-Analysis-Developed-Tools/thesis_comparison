@@ -2,15 +2,18 @@ import pandas as pd
 import streamlit as st
 import scipy.stats as stats
 
-# Inizializza session_state per gestire i dati
+# 🛠️ Inizializza `session_state`
 if "final_data" not in st.session_state:
-    st.session_state["final_data"] = None  # Contiene i dati finalizzati per app.py
+    st.session_state["final_data"] = None  # Dati definitivi per `app.py`
 
 if "confidence_level" not in st.session_state:
     st.session_state["confidence_level"] = None
 
 if "file_uploaded" not in st.session_state:
     st.session_state["file_uploaded"] = False
+
+if "preliminary_tests" not in st.session_state:
+    st.session_state["preliminary_tests"] = None
 
 # 📂 Caricamento del file
 uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
@@ -19,6 +22,7 @@ uploaded_file = st.sidebar.file_uploader("📂 Carica un file Excel (.xlsx)", ty
 if uploaded_file is None:
     st.session_state["file_uploaded"] = False
     st.session_state["confidence_level"] = None
+    st.session_state["preliminary_tests"] = None
     st.session_state["final_data"] = None  # Cancella i dati precedenti
 
 def load_data(uploaded_file):
@@ -75,31 +79,28 @@ if df is not None and st.session_state["confidence_level"] is not None:
         return I
 
     def preliminary_tests(df):
-        """Esegue i test preliminari e mostra i risultati nella sidebar."""
+        """Esegue i test preliminari e salva i risultati."""
         
-        num_theses = len(df.columns)
-        st.sidebar.subheader("📊 Panoramica del Dataset")
-        st.sidebar.write(f"🔢 **Numero di Tesi:** {num_theses}")
-
         observations_per_thesis = {col: df[col].notna().sum() for col in df.columns}
-        for thesis, count in observations_per_thesis.items():
-            st.sidebar.write(f"**{thesis}**: {count} osservazioni")
+        obs_values = list(observations_per_thesis.values())
+        imbalance_index = imbalance_coefficient(obs_values)
 
         alpha = st.session_state["confidence_level"]
-        normality_results = {}
-        for thesis in df.columns:
-            stat, p_value = stats.shapiro(df[thesis].dropna())
-            result_text = "✅ Normale" if p_value > alpha else "⚠️ Non Normale"
-            normality_results[thesis] = p_value
-            st.sidebar.write(f"**{thesis}**: p = {p_value:.4f} ({result_text})")
+        normality_results = {col: stats.shapiro(df[col].dropna())[1] for col in df.columns}
+        levene_stat, levene_p = stats.levene(*[df[col].dropna() for col in df.columns])
 
-        return normality_results
+        return {
+            "observations": observations_per_thesis,
+            "imbalance_index": imbalance_index,
+            "normality_results": normality_results,
+            "levene_p": levene_p
+        }
 
-    # 📝 Esegui i test
+    # 📝 Esegui i test preliminari
     test_results = preliminary_tests(df)
 
     # ✅ Passa i dati ad `app.py`
-    st.session_state["final_data"] = df  # Salva il dataframe pronto per app.py
-    st.session_state["test_results"] = test_results  # Salva i risultati dei test
-    st.sidebar.success("✅ Analisi completata! Passa a `app.py` per la visualizzazione.")
+    st.session_state["final_data"] = df  # Salva il dataframe
+    st.session_state["preliminary_tests"] = test_results  # Salva i risultati dei test
+    st.sidebar.success("✅ Test preliminari completati! Passa ad `app.py`.")
 
