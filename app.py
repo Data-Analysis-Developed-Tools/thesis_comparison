@@ -100,3 +100,13 @@ if uploaded_file is not None:
                 st.success(f"✅ I dati in '{col}' possono essere considerati normali (p > {alpha})")
             else:
                 st.error(f"❌ I dati in '{col}' non seguono una distribuzione normale (p ≤ {alpha})")
+
+# Esportiamo le variabili per il file test_selection.py
+import streamlit as st
+
+st.session_state["num_cols"] = num_cols
+st.session_state["inequality_ratio"] = inequality_ratio
+st.session_state["varianze_uguali"] = varianze_uguali
+st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
+st.session_state["df"] = df
+
