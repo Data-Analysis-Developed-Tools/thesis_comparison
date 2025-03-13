@@ -64,8 +64,11 @@ if uploaded_file is not None:
             st.write(f"🔹 **Numero massimo di osservazioni:** {max_n}")
             st.write(f"🔹 **Rapporto Max/Min:** {inequality_ratio:.2f}")
 
+            # Nuove soglie di avviso per la disomogeneità
             if inequality_ratio > 10:
-                st.warning("⚠️ Il rapporto tra la tesi con più osservazioni e quella con meno è molto alto (>10). Potrebbe essere necessaria una correzione nel disegno sperimentale.")
+                st.error("❌ Il rapporto Max/Min è >10, la disomogeneità è molto alta! L'analisi potrebbe non essere affidabile.")
+            elif inequality_ratio > 5:
+                st.warning("⚠️ Il rapporto tra la tesi con più osservazioni e quella con meno è elevato (>5). Potrebbe essere necessario riequilibrare i dati.")
             else:
                 st.success("✅ La distribuzione delle osservazioni tra le tesi è accettabile.")
 
