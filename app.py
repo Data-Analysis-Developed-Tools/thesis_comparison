@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from scipy.stats import levene, shapiro
+import subprocess  # Per eseguire test_selection.py direttamente
 
 # Titolo dell'app
 st.markdown("<h3 style='text-align: center;'>📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI, PER VALUTAZIONE SOMIGLIANZE/DIFFERENZE</h3>", unsafe_allow_html=True)
@@ -106,4 +107,7 @@ if uploaded_file is not None:
             st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
             st.session_state["df"] = df
 
-            st.success("📊 **Analisi preliminare completata! Ora puoi eseguire `test_selection.py` per selezionare ed eseguire il test statistico appropriato.**")
+            # **Pulsante per eseguire direttamente test_selection.py**
+            if st.button("🚀 Esegui il test statistico appropriato"):
+                st.success("📊 **Avvio dell'analisi statistica avanzata...**")
+                subprocess.run(["streamlit", "run", "test_selection.py"])
