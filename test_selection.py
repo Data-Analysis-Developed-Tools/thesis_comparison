@@ -3,10 +3,18 @@ from scipy.stats import ttest_ind, mannwhitneyu, kruskal
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.oneway import anova_oneway
 
-# Importiamo i risultati calcolati in app.py
-from app import num_cols, inequality_ratio, varianze_uguali, almeno_una_non_normale, df
-
 st.title("📊 Selezione ed Esecuzione del Test Statistico")
+
+# **🔹 Recuperiamo i risultati di `app.py`**
+if "num_cols" not in st.session_state:
+    st.error("⚠️ I risultati dei test preliminari non sono disponibili. Esegui prima `app.py`!")
+    st.stop()
+
+num_cols = st.session_state["num_cols"]
+inequality_ratio = st.session_state["inequality_ratio"]
+varianze_uguali = st.session_state["varianze_uguali"]
+almeno_una_non_normale = st.session_state["almeno_una_non_normale"]
+df = st.session_state["df"]
 
 if len(num_cols) < 2:
     st.warning("⚠️ Sono necessarie almeno due tesi per effettuare un confronto statistico.")
