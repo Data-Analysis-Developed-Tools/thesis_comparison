@@ -1,4 +1,30 @@
 import streamlit as st
+import pandas as pd
+
+# 🔹 Recuperiamo i parametri dalla URL
+query_params = st.experimental_get_query_params()
+alpha = float(query_params.get("alpha", [0.05])[0])  # Livello di significatività
+file_name = query_params.get("file_name", [""])[0]  # Nome del file Excel
+
+st.title("📊 Selezione ed Esecuzione del Test Statistico")
+
+# Se il file_name è vuoto, mostra un messaggio di errore
+if not file_name:
+    st.error("⚠️ Nessun file ricevuto. Assicurati di avviare questa pagina da `app.py`.")
+    st.stop()
+
+# Carichiamo il file Excel dal nome passato
+uploaded_file_path = f"./{file_name}"  # Assumendo che sia salvato nella directory
+try:
+    df = pd.read_excel(uploaded_file_path)
+    st.success(f"✅ File `{file_name}` caricato correttamente!")
+    st.dataframe(df.head())
+except Exception as e:
+    st.error(f"❌ Errore nel caricamento del file: {e}")
+    st.stop()
+
+
+import streamlit as st
 from scipy.stats import ttest_ind, mannwhitneyu, kruskal
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.oneway import anova_oneway
