@@ -3,7 +3,7 @@ import streamlit as st
 from scipy.stats import levene, shapiro
 
 # Titolo dell'app
-st.title("📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI, PER VALUTAZIONE SOMIGLIANZE/DIFFERENZE")
+st.markdown("<h3 style='text-align: center;'>📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI, PER VALUTAZIONE SOMIGLIANZE/DIFFERENZE</h3>", unsafe_allow_html=True)
 
 # Opzioni per la significatività statistica
 sig_levels = {
