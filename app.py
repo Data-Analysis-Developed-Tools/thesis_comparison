@@ -74,39 +74,36 @@ if uploaded_file is not None:
 
             # **Test di Levene per l'uguaglianza delle varianze**
             st.subheader("📈 Test di Levene - Omogeneità delle Varianze")
-            group1 = df[num_cols[0]]
-            group2 = df[num_cols[1]]
 
-            levene_stat, levene_p = levene(group1.dropna(), group2.dropna())
+            levene_stat, levene_p = levene(*[df[col].dropna() for col in num_cols])
+            varianze_uguali = levene_p > alpha  # Definizione della variabile
 
             st.write(f"**Statistiche test di Levene:** {levene_stat:.4f}")
             st.write(f"**p-value:** {levene_p:.4f}")
 
-            if levene_p > alpha:
+            if varianze_uguali:
                 st.success(f"✅ Le varianze possono essere considerate uguali (p > {alpha})")
             else:
                 st.error(f"❌ Le varianze sono significativamente diverse (p ≤ {alpha})")
 
-        # **Test di Shapiro-Wilk per la normalità**
-        st.subheader("📊 Test di Shapiro-Wilk - Normalità della Distribuzione")
+            # **Test di Shapiro-Wilk per la normalità**
+            st.subheader("📊 Test di Shapiro-Wilk - Normalità della Distribuzione")
 
-        for col in num_cols:
-            shapiro_stat, shapiro_p = shapiro(df[col].dropna())
-            st.write(f"**Colonna:** {col}")
-            st.write(f"**Statistiche test di Shapiro-Wilk:** {shapiro_stat:.4f}")
-            st.write(f"**p-value:** {shapiro_p:.4f}")
+            normalita = {}
+            for col in num_cols:
+                shapiro_stat, shapiro_p = shapiro(df[col].dropna())
+                normalita[col] = shapiro_p > alpha  # True se la colonna è normale
+                st.write(f"**Colonna:** {col}")
+                st.write(f"**Statistiche test di Shapiro-Wilk:** {shapiro_stat:.4f}")
+                st.write(f"**p-value:** {shapiro_p:.4f}")
 
-            if shapiro_p > alpha:
-                st.success(f"✅ I dati in '{col}' possono essere considerati normali (p > {alpha})")
-            else:
-                st.error(f"❌ I dati in '{col}' non seguono una distribuzione normale (p ≤ {alpha})")
+            almeno_una_non_normale = not all(normalita.values())  # Definizione della variabile
 
-# Esportiamo le variabili per il file test_selection.py
-import streamlit as st
+            # ✅ Esportiamo i risultati per `test_selection.py`
+            st.session_state["num_cols"] = num_cols
+            st.session_state["inequality_ratio"] = inequality_ratio
+            st.session_state["varianze_uguali"] = varianze_uguali
+            st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
+            st.session_state["df"] = df
 
-st.session_state["num_cols"] = num_cols
-st.session_state["inequality_ratio"] = inequality_ratio
-st.session_state["varianze_uguali"] = varianze_uguali
-st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
-st.session_state["df"] = df
-
+            st.success("📊 **Analisi preliminare completata! Ora puoi eseguire `test_selection.py` per selezionare ed eseguire il test statistico appropriato.**")
