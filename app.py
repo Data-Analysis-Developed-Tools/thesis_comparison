@@ -13,7 +13,7 @@ sig_levels = {
     "99.9% (α = 0.001)": 0.001
 }
 
-# Selezione del livello di significatività PRIMA del caricamento del file
+# Selezione del livello di significatività
 selected_level = st.selectbox(
     "📊 Seleziona il livello di significatività prima di caricare il file:",
     options=list(sig_levels.keys()),
@@ -30,7 +30,6 @@ def load_data(uploaded_file):
     """Carica il file Excel e lo trasforma in DataFrame."""
     try:
         df = pd.read_excel(uploaded_file)
-        df = df.dropna()  # Rimuove i valori mancanti
         return df
     except Exception as e:
         st.error(f"❌ Errore nel caricamento del file: {e}")
@@ -44,9 +43,9 @@ if uploaded_file is not None:
         st.dataframe(df.head())  # Mostra un'anteprima del DataFrame
         st.write(f"🔬 **Livello di significatività selezionato:** {selected_level} (α = {alpha})")
 
-        # Verifica se ci sono almeno due colonne numeriche per l'analisi
+        # Verifica se ci sono almeno due colonne numeriche
         num_cols = df.select_dtypes(include=['number']).columns
-        st.write(f"📌 **Colonne numeriche trovate:** {list(num_cols)}")  # Debug
+        st.write(f"📌 **Colonne numeriche trovate:** {list(num_cols)}")
 
         if len(num_cols) < 2:
             st.warning("⚠️ Sono necessarie almeno due colonne numeriche per il test di Levene.")
@@ -54,7 +53,7 @@ if uploaded_file is not None:
             # **Calcolo del Rapporto di Disuguaglianza (Max/Min)**
             st.subheader("📊 Rapporto di Disuguaglianza (Max/Min) delle Numerosità")
 
-            # Conteggio delle osservazioni per ogni colonna
+            # Contare le osservazioni PRIMA di eliminare i NaN
             count_values = df[num_cols].count()
             min_n = count_values.min()
             max_n = count_values.max()
@@ -75,7 +74,7 @@ if uploaded_file is not None:
             group1 = df[num_cols[0]]
             group2 = df[num_cols[1]]
 
-            levene_stat, levene_p = levene(group1, group2)
+            levene_stat, levene_p = levene(group1.dropna(), group2.dropna())
 
             st.write(f"**Statistiche test di Levene:** {levene_stat:.4f}")
             st.write(f"**p-value:** {levene_p:.4f}")
@@ -89,7 +88,7 @@ if uploaded_file is not None:
         st.subheader("📊 Test di Shapiro-Wilk - Normalità della Distribuzione")
 
         for col in num_cols:
-            shapiro_stat, shapiro_p = shapiro(df[col])
+            shapiro_stat, shapiro_p = shapiro(df[col].dropna())
             st.write(f"**Colonna:** {col}")
             st.write(f"**Statistiche test di Shapiro-Wilk:** {shapiro_stat:.4f}")
             st.write(f"**p-value:** {shapiro_p:.4f}")
