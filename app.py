@@ -98,6 +98,12 @@ if uploaded_file is not None:
                 st.write(f"**Statistiche test di Shapiro-Wilk:** {shapiro_stat:.4f}")
                 st.write(f"**p-value:** {shapiro_p:.4f}")
 
+                # **Messaggio di commento per la normalità**
+                if normalita[col]:
+                    st.success(f"✅ I dati nella colonna '{col}' **seguono una distribuzione normale** (p > {alpha}).")
+                else:
+                    st.error(f"❌ I dati nella colonna '{col}' **non seguono una distribuzione normale** (p ≤ {alpha}).")
+
             almeno_una_non_normale = not all(normalita.values())  # Definizione della variabile
 
             # ✅ Esportiamo i risultati per `test_selection.py`
