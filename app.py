@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from scipy.stats import levene, shapiro
+import urllib.parse  # Per creare URL sicuri
 
 # Titolo dell'app
 st.markdown("<h3 style='text-align: center;'>📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI, PER VALUTAZIONE SOMIGLIANZE/DIFFERENZE</h3>", unsafe_allow_html=True)
@@ -112,9 +113,11 @@ if uploaded_file is not None:
             st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
             st.session_state["df"] = df
 
-            # **Pulsante per aprire test_selection.py in una nuova scheda**
-            st.markdown("""
-                <a href="test_selection.py" target="_blank">
+            # **Genera URL con i parametri e crea un pulsante per aprire test_selection.py in una nuova scheda**
+            test_selection_url = f"test_selection.py?alpha={urllib.parse.quote(str(alpha))}&file_name={urllib.parse.quote(uploaded_file.name)}"
+
+            st.markdown(f"""
+                <a href="{test_selection_url}" target="_blank">
                     <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
                         🚀 Esegui il test statistico appropriato
                     </button>
