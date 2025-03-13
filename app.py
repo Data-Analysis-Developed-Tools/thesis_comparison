@@ -3,7 +3,7 @@ import streamlit as st
 from scipy.stats import levene, shapiro
 
 # Titolo dell'app
-st.title("📊 Analisi Statistica: Test di Levene e Shapiro-Wilk")
+st.title("📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI, PER VALUTAZIONE SOMIGLIANZE/DIFFERENZE")
 
 # Opzioni per la significatività statistica
 sig_levels = {
