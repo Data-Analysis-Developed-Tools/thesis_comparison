@@ -46,23 +46,31 @@ if uploaded_file is not None:
 
         # Verifica se ci sono almeno due colonne numeriche per l'analisi
         num_cols = df.select_dtypes(include=['number']).columns
+        st.write(f"📌 **Colonne numeriche trovate:** {list(num_cols)}")  # Debug
+
         if len(num_cols) < 2:
             st.warning("⚠️ Sono necessarie almeno due colonne numeriche per il test di Levene.")
         else:
-            # Calcolo del Rapporto di Disuguaglianza (Max/Min)
+            # **Calcolo del Rapporto di Disuguaglianza (Max/Min)**
             st.subheader("📊 Rapporto di Disuguaglianza (Max/Min) delle Numerosità")
-            min_n = df[num_cols].count().min()
-            max_n = df[num_cols].count().max()
+
+            # Conteggio delle osservazioni per ogni colonna
+            count_values = df[num_cols].count()
+            min_n = count_values.min()
+            max_n = count_values.max()
             inequality_ratio = max_n / min_n if min_n > 0 else float('inf')
 
+            # Debugging output
             st.write(f"🔹 **Numero minimo di osservazioni:** {min_n}")
             st.write(f"🔹 **Numero massimo di osservazioni:** {max_n}")
             st.write(f"🔹 **Rapporto Max/Min:** {inequality_ratio:.2f}")
 
             if inequality_ratio > 10:
                 st.warning("⚠️ Il rapporto tra la tesi con più osservazioni e quella con meno è molto alto (>10). Potrebbe essere necessaria una correzione nel disegno sperimentale.")
+            else:
+                st.success("✅ La distribuzione delle osservazioni tra le tesi è accettabile.")
 
-            # Test di Levene per l'uguaglianza delle varianze
+            # **Test di Levene per l'uguaglianza delle varianze**
             st.subheader("📈 Test di Levene - Omogeneità delle Varianze")
             group1 = df[num_cols[0]]
             group2 = df[num_cols[1]]
@@ -77,9 +85,9 @@ if uploaded_file is not None:
             else:
                 st.error(f"❌ Le varianze sono significativamente diverse (p ≤ {alpha})")
 
-        # Test di Shapiro-Wilk per la normalità
+        # **Test di Shapiro-Wilk per la normalità**
         st.subheader("📊 Test di Shapiro-Wilk - Normalità della Distribuzione")
-        
+
         for col in num_cols:
             shapiro_stat, shapiro_p = shapiro(df[col])
             st.write(f"**Colonna:** {col}")
