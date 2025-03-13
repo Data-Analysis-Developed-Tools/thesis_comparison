@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # 🔹 Recuperiamo i parametri dalla URL
-query_params = st.experimental_get_query_params()
+query_params = st.query_params
 alpha = float(query_params.get("alpha", [0.05])[0])  # Livello di significatività
 file_name = query_params.get("file_name", [""])[0]  # Nome del file Excel
 
