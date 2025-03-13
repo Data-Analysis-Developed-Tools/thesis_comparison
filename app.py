@@ -112,7 +112,11 @@ if uploaded_file is not None:
             st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
             st.session_state["df"] = df
 
-            # **Pulsante per eseguire direttamente test_selection.py all'interno di un iframe**
-            if st.button("🚀 Esegui il test statistico appropriato"):
-                st.success("📊 **Analisi statistica in corso...**")
-                st.markdown('<iframe src="test_selection.py" width="100%" height="600"></iframe>', unsafe_allow_html=True)
+            # **Pulsante per aprire test_selection.py in una nuova scheda**
+            st.markdown("""
+                <a href="test_selection.py" target="_blank">
+                    <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
+                        🚀 Esegui il test statistico appropriato
+                    </button>
+                </a>
+            """, unsafe_allow_html=True)
