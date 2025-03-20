@@ -81,8 +81,15 @@ if st.session_state["uploaded_file"] is not None:
             varianze_uguali = levene_p > alpha
 
             # **Test di Shapiro-Wilk per la normalità**
-            normalita = {col: shapiro(df[col].dropna())[1] > alpha for col in num_cols}
-            almeno_una_non_normale = not all(normalita.values())
+            normalita_results = []
+            almeno_una_non_normale = False
+
+            for col in num_cols:
+                shapiro_stat, shapiro_p = shapiro(df[col].dropna())
+                normale = shapiro_p > alpha
+                normalita_results.append([col, f"{shapiro_stat:.4f}", f"{shapiro_p:.4f}", "✅ Sì" if normale else "❌ No"])
+                if not normale:
+                    almeno_una_non_normale = True  # Se almeno una tesi non è normale, lo segnaliamo
 
             # **Salviamo i risultati in `st.session_state`**
             results_df = pd.DataFrame({
@@ -93,6 +100,7 @@ if st.session_state["uploaded_file"] is not None:
                     "Statistiche Levene", 
                     "p-value Levene", 
                     "Varianze Uguali", 
+                    "Test di normalità: Shapiro-Wilk",
                     "Almeno una distribuzione NON normale"
                 ],
                 "Valore": [
@@ -102,6 +110,7 @@ if st.session_state["uploaded_file"] is not None:
                     f"{levene_stat:.4f}", 
                     f"{levene_p:.4f}", 
                     "✅ Sì" if varianze_uguali else "❌ No",
+                    "Eseguito su ogni tesi",
                     "❌ Sì" if almeno_una_non_normale else "✅ No"
                 ],
                 "Commento": [
@@ -111,16 +120,26 @@ if st.session_state["uploaded_file"] is not None:
                     "Valore della statistica di Levene per l'uguaglianza delle varianze",
                     "Se p ≤ α, le varianze sono significativamente diverse",
                     "Se 'Sì', le varianze possono essere considerate uguali",
+                    "Verifica se ogni tesi segue una distribuzione normale",
                     "Se 'Sì', almeno una tesi non segue una distribuzione normale"
                 ]
             })
 
+            # **Aggiungiamo i dettagli del test di normalità**
+            normalita_df = pd.DataFrame(normalita_results, columns=["Tesi", "Statistica Shapiro-Wilk", "p-value", "Distribuzione Normale"])
+
             st.session_state["results_df"] = results_df
+            st.session_state["normalita_df"] = normalita_df
 
 # **Visualizza i risultati precedenti se esistono**
 if st.session_state["results_df"] is not None:
     st.subheader("📊 **Risultati dell'Analisi Preliminare**")
     st.dataframe(st.session_state["results_df"], width=750)
+
+    # **Mostra il dettaglio per ogni tesi del test di normalità**
+    if st.session_state["normalita_df"] is not None:
+        st.subheader("📊 **Dettaglio del Test di Normalità (Shapiro-Wilk)**")
+        st.dataframe(st.session_state["normalita_df"], width=750)
 
     # **Pulsante per aprire applicazione_test.py**
     st.markdown("""
