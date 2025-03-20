@@ -3,7 +3,7 @@ import streamlit as st
 from scipy.stats import levene, shapiro
 
 # 🔹 Titolo dell'app
-st.markdown("<h3 style='text-align: center;'>📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>📊 ANALISI PRELIMINARE DELLE TESI</h3>", unsafe_allow_html=True)
 
 # Opzioni per la significatività statistica
 sig_levels = {
@@ -67,7 +67,7 @@ if uploaded_file is not None:
             normalita = {col: shapiro(df[col].dropna())[1] > alpha for col in num_cols}
             almeno_una_non_normale = not all(normalita.values())
 
-            # ✅ Esportiamo i risultati per `test_selection.py`
+            # ✅ Esportiamo i risultati per `applicazione_test.py`
             st.session_state["num_cols"] = num_cols
             st.session_state["inequality_ratio"] = inequality_ratio
             st.session_state["varianze_uguali"] = varianze_uguali
@@ -107,9 +107,9 @@ if uploaded_file is not None:
             st.subheader("📊 **Risultati dell'Analisi Preliminare**")
             st.dataframe(results_df, width=750)
 
-            # **Pulsante per aprire test_selection.py**
+            # **Pulsante per aprire applicazione_test.py**
             st.markdown("""
-                <a href="/test_selection" target="_blank">
+                <a href="/applicazione_test" target="_blank">
                     <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
                         🚀 Esegui il test statistico appropriato
                     </button>
