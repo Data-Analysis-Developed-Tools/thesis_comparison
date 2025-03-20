@@ -3,7 +3,7 @@ import streamlit as st
 from scipy.stats import levene, shapiro
 
 # 🔹 Titolo dell'app
-st.markdown("<h3 style='text-align: center;'>📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI, PER VALUTAZIONE SOMIGLIANZE/DIFFERENZE</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>📊 CONFRONTO FRA TESI CON VARIE RIPETIZIONI</h3>", unsafe_allow_html=True)
 
 # Opzioni per la significatività statistica
 sig_levels = {
@@ -49,71 +49,43 @@ if uploaded_file is not None:
 
         # Verifica se ci sono almeno due colonne numeriche
         num_cols = df.select_dtypes(include=['number']).columns
-        st.write(f"📌 **Colonne numeriche trovate:** {list(num_cols)}")
 
         if len(num_cols) < 2:
             st.warning("⚠️ Sono necessarie almeno due colonne numeriche per il test di Levene.")
         else:
             # **Calcolo del Rapporto di Disuguaglianza (Max/Min)**
-            st.subheader("📊 Rapporto di Disuguaglianza (Max/Min) delle Numerosità")
-
-            # Contare le osservazioni PRIMA di eliminare i NaN
             count_values = df[num_cols].count()
             min_n = count_values.min()
             max_n = count_values.max()
             inequality_ratio = max_n / min_n if min_n > 0 else float('inf')
 
-            # Debugging output
-            st.write(f"🔹 **Numero minimo di osservazioni:** {min_n}")
-            st.write(f"🔹 **Numero massimo di osservazioni:** {max_n}")
-            st.write(f"🔹 **Rapporto Max/Min:** {inequality_ratio:.2f}")
-
-            # Nuove soglie di avviso per la disomogeneità
-            if inequality_ratio > 10:
-                st.error("❌ Il rapporto Max/Min è >10, la disomogeneità è molto alta! L'analisi potrebbe non essere affidabile.")
-            elif inequality_ratio > 5:
-                st.warning("⚠️ Il rapporto tra la tesi con più osservazioni e quella con meno è elevato (>5). Potrebbe essere necessario riequilibrare i dati.")
-            else:
-                st.success("✅ La distribuzione delle osservazioni tra le tesi è accettabile.")
-
             # **Test di Levene per l'uguaglianza delle varianze**
-            st.subheader("📈 Test di Levene - Omogeneità delle Varianze")
-
             levene_stat, levene_p = levene(*[df[col].dropna() for col in num_cols])
-            varianze_uguali = levene_p > alpha  # Definizione della variabile
-
-            st.write(f"**Statistiche test di Levene:** {levene_stat:.4f}")
-            st.write(f"**p-value:** {levene_p:.4f}")
-
-            if varianze_uguali:
-                st.success(f"✅ Le varianze possono essere considerate uguali (p > {alpha})")
-            else:
-                st.error(f"❌ Le varianze sono significativamente diverse (p ≤ {alpha})")
+            varianze_uguali = levene_p > alpha
 
             # **Test di Shapiro-Wilk per la normalità**
-            st.subheader("📊 Test di Shapiro-Wilk - Normalità della Distribuzione")
-
-            normalita = {}
-            for col in num_cols:
-                shapiro_stat, shapiro_p = shapiro(df[col].dropna())
-                normalita[col] = shapiro_p > alpha  # True se la colonna è normale
-                st.write(f"**Colonna:** {col}")
-                st.write(f"**Statistiche test di Shapiro-Wilk:** {shapiro_stat:.4f}")
-                st.write(f"**p-value:** {shapiro_p:.4f}")
-
-                # **Messaggio di commento per la normalità**
-                if normalita[col]:
-                    st.success(f"✅ I dati nella colonna '{col}' **seguono una distribuzione normale** (p > {alpha}).")
-                else:
-                    st.error(f"❌ I dati nella colonna '{col}' **non seguono una distribuzione normale** (p ≤ {alpha}).")
-
-            almeno_una_non_normale = not all(normalita.values())  # Definizione della variabile
+            normalita = {col: shapiro(df[col].dropna())[1] > alpha for col in num_cols}
+            almeno_una_non_normale = not all(normalita.values())
 
             # ✅ Esportiamo i risultati per `test_selection.py`
             st.session_state["num_cols"] = num_cols
             st.session_state["inequality_ratio"] = inequality_ratio
             st.session_state["varianze_uguali"] = varianze_uguali
             st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
+
+            # **Output compatto sotto forma di tabella**
+            results_df = pd.DataFrame({
+                "Parametro": ["Numero Min. Osservazioni", "Numero Max. Osservazioni", "Rapporto Max/Min", 
+                              "Statistiche Levene", "p-value Levene", "Varianze Uguali", 
+                              "Almeno una distribuzione NON normale"],
+                "Valore": [min_n, max_n, f"{inequality_ratio:.2f}", 
+                           f"{levene_stat:.4f}", f"{levene_p:.4f}", 
+                           "✅ Sì" if varianze_uguali else "❌ No",
+                           "❌ Sì" if almeno_una_non_normale else "✅ No"]
+            })
+
+            st.subheader("📊 **Risultati dell'Analisi Preliminare**")
+            st.dataframe(results_df, width=600)
 
             # **Pulsante per aprire test_selection.py**
             st.markdown("""
