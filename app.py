@@ -73,19 +73,39 @@ if uploaded_file is not None:
             st.session_state["varianze_uguali"] = varianze_uguali
             st.session_state["almeno_una_non_normale"] = almeno_una_non_normale
 
-            # **Output compatto sotto forma di tabella**
+            # **Tabella compatta con commenti**
             results_df = pd.DataFrame({
-                "Parametro": ["Numero Min. Osservazioni", "Numero Max. Osservazioni", "Rapporto Max/Min", 
-                              "Statistiche Levene", "p-value Levene", "Varianze Uguali", 
-                              "Almeno una distribuzione NON normale"],
-                "Valore": [min_n, max_n, f"{inequality_ratio:.2f}", 
-                           f"{levene_stat:.4f}", f"{levene_p:.4f}", 
-                           "✅ Sì" if varianze_uguali else "❌ No",
-                           "❌ Sì" if almeno_una_non_normale else "✅ No"]
+                "Parametro": [
+                    "Numero Min. Osservazioni", 
+                    "Numero Max. Osservazioni", 
+                    "Rapporto Max/Min", 
+                    "Statistiche Levene", 
+                    "p-value Levene", 
+                    "Varianze Uguali", 
+                    "Almeno una distribuzione NON normale"
+                ],
+                "Valore": [
+                    min_n, 
+                    max_n, 
+                    f"{inequality_ratio:.2f}", 
+                    f"{levene_stat:.4f}", 
+                    f"{levene_p:.4f}", 
+                    "✅ Sì" if varianze_uguali else "❌ No",
+                    "❌ Sì" if almeno_una_non_normale else "✅ No"
+                ],
+                "Commento": [
+                    "Minimo numero di osservazioni tra le tesi",
+                    "Massimo numero di osservazioni tra le tesi",
+                    "Rapporto tra la tesi con più osservazioni e quella con meno",
+                    "Valore della statistica di Levene per l'uguaglianza delle varianze",
+                    "Se p ≤ α, le varianze sono significativamente diverse",
+                    "Se 'Sì', le varianze possono essere considerate uguali",
+                    "Se 'Sì', almeno una tesi non segue una distribuzione normale"
+                ]
             })
 
             st.subheader("📊 **Risultati dell'Analisi Preliminare**")
-            st.dataframe(results_df, width=600)
+            st.dataframe(results_df, width=750)
 
             # **Pulsante per aprire test_selection.py**
             st.markdown("""
