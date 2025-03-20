@@ -66,6 +66,16 @@ if st.session_state["uploaded_file"] is not None:
             max_n = count_values.max()
             inequality_ratio = max_n / min_n if min_n > 0 else float('inf')
 
+            # 🔹 **Definiamo il commento sul bilanciamento**
+            if inequality_ratio <= 1.5:
+                balance_comment = "Dati ben bilanciati tra le tesi"
+            elif inequality_ratio <= 3:
+                balance_comment = "Dati moderatamente sbilanciati"
+            elif inequality_ratio <= 5:
+                balance_comment = "Dati sbilanciati, attenzione all'analisi"
+            else:
+                balance_comment = "Dati fortemente sbilanciati, possibile distorsione nei test statistici"
+
             # **Test di Levene per l'uguaglianza delle varianze**
             levene_stat, levene_p = levene(*[df[col].dropna() for col in num_cols])
             varianze_uguali = levene_p > alpha
@@ -97,7 +107,7 @@ if st.session_state["uploaded_file"] is not None:
                 "Commento": [
                     "Minimo numero di osservazioni tra le tesi",
                     "Massimo numero di osservazioni tra le tesi",
-                    "Rapporto tra la tesi con più osservazioni e quella con meno",
+                    balance_comment,
                     "Valore della statistica di Levene per l'uguaglianza delle varianze",
                     "Se p ≤ α, le varianze sono significativamente diverse",
                     "Se 'Sì', le varianze possono essere considerate uguali",
