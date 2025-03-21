@@ -91,49 +91,49 @@ edges = [
 
 G.add_edges_from(edges)
 
-# 📌 Posizionamento dei nodi per la visualizzazione corretta
+# 📌 Posizionamento dei nodi per una distribuzione più leggibile
 pos = {
-    "xlsx": (0, 8),
-    "num_tesi": (0, 7),
-    "tesi_2": (-2, 6),
-    "tesi_gt2": (2, 6),
+    "xlsx": (0, 9),
+    "num_tesi": (0, 8),
+    "tesi_2": (-3, 7),
+    "tesi_gt2": (3, 7),
 
-    "var_2_eq": (-3, 5),
-    "var_2_diff": (-1, 5),
-    "var_gt2_eq": (1, 5),
-    "var_gt2_diff": (3, 5),
+    "var_2_eq": (-4, 6),
+    "var_2_diff": (-2, 6),
+    "var_gt2_eq": (2, 6),
+    "var_gt2_diff": (4, 6),
 
-    "norm_2_eq_yes": (-3.5, 4),
-    "norm_2_eq_no": (-2.5, 4),
-    "norm_2_diff_yes": (-1.5, 4),
-    "norm_2_diff_no": (-0.5, 4),
-    "norm_gt2_eq_yes": (0.5, 4),
-    "norm_gt2_eq_no": (1.5, 4),
-    "norm_gt2_diff_yes": (2.5, 4),
-    "norm_gt2_diff_no": (3.5, 4),
+    "norm_2_eq_yes": (-4.5, 5),
+    "norm_2_eq_no": (-3.5, 5),
+    "norm_2_diff_yes": (-2.5, 5),
+    "norm_2_diff_no": (-1.5, 5),
+    "norm_gt2_eq_yes": (1.5, 5),
+    "norm_gt2_eq_no": (2.5, 5),
+    "norm_gt2_diff_yes": (3.5, 5),
+    "norm_gt2_diff_no": (4.5, 5),
 
-    "bilanciamento": (-3.5, 3),
-    "bilanciamento_gt2": (0.5, 3),
+    "bilanciamento": (-4.5, 4),
+    "bilanciamento_gt2": (1.5, 4),
 
-    "bilanciate": (-4, 2),
-    "sbilanciate": (-3, 2),
-    "bilanciate_gt2": (0, 2),
-    "sbilanciate_gt2": (1, 2),
+    "bilanciate": (-5, 3),
+    "sbilanciate": (-4, 3),
+    "bilanciate_gt2": (1, 3),
+    "sbilanciate_gt2": (2, 3),
 
     # Test finali
-    "anova_tukey": (-1, 1),
-    "kruskal": (1, 1),
-    "welch_games": (3, 1),
-    "t_test": (-4, 1),
-    "welch_ttest": (-3, 1),
-    "mann_whitney": (-2.5, 1),
-    "games": (2, 1)
+    "anova_tukey": (-3, 2),
+    "kruskal": (0, 2),
+    "welch_games": (3, 2),
+    "t_test": (-5, 2),
+    "welch_ttest": (-4, 2),
+    "mann_whitney": (-2, 2),
+    "games": (2, 2)
 }
 
-# Disegno del grafo
-plt.figure(figsize=(16, 12))
-nx.draw_networkx_nodes(G, pos, node_color="lightgray", node_size=3000)
-nx.draw_networkx_edges(G, pos, arrows=True, arrowsize=30, width=2, edge_color="gray")
-nx.draw_networkx_labels(G, pos, labels=nodes, font_size=9, font_weight="bold")
+# Disegno del grafo con maggiore leggibilità
+plt.figure(figsize=(18, 14))
+nx.draw_networkx_nodes(G, pos, node_color="lightgray", node_size=3500)
+nx.draw_networkx_edges(G, pos, arrows=True, arrowsize=35, width=2, edge_color="gray")
+nx.draw_networkx_labels(G, pos, labels=nodes, font_size=10, font_weight="bold")
 
 st.pyplot(plt)
