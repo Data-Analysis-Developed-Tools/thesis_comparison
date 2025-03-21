@@ -88,8 +88,8 @@ else:
         else:
             path.append("t_test")
 
-# 🔹 **Usiamo il layout gerarchico top-down**
-pos = nx.nx_agraph.graphviz_layout(G, prog="dot")  # 🔄 Questo assicura il flusso dall'alto verso il basso
+# 🔹 **Usiamo il layout ad albero (dall'alto verso il basso)**
+pos = nx.spring_layout(G, seed=42, k=2.5, center=(0, 0))  # 🔥 k=2.5 aumenta la distanza tra i nodi
 
 # 🎨 **Disegna il grafo**
 plt.figure(figsize=(10, 12))  # 🔄 Layout verticale più alto
@@ -106,7 +106,7 @@ nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue",
 nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=2.5)
 
 # **Posizionamento delle etichette ottimizzato**
-label_pos = {key: (x, y - 10) for key, (x, y) in pos.items()}  # 🔄 Abbassiamo le etichette per evitare sovrapposizioni
+label_pos = {key: (x, y - 0.05) for key, (x, y) in pos.items()}  # 🔄 Abbassiamo il testo per evitare sovrapposizioni
 nx.draw_networkx_labels(G, label_pos, labels=nodes, font_size=10, font_weight="bold")
 
 st.pyplot(plt)
