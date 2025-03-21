@@ -140,6 +140,21 @@ if st.session_state["results_df"] is not None:
     if st.session_state["normalita_df"] is not None:
         st.subheader("📊 **Dettaglio del Test di Normalità (Shapiro-Wilk)**")
         st.dataframe(st.session_state["normalita_df"], width=750)
+# **Salviamo i risultati dell'analisi preliminare in st.session_state**
+st.session_state["num_cols"] = num_cols
+st.session_state["df"] = df.copy()  # Manteniamo una copia dei dati per le analisi successive
+
+st.subheader("📊 **Risultati dell'Analisi Preliminare**")
+st.dataframe(st.session_state["results_df"], width=750)
+
+# **Pulsante per passare all'analisi degli outlier**
+st.markdown("""
+    <a href="/individuazione_outlier" target="_blank">
+        <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
+            🚀 Passa all'Individuazione degli Outlier
+        </button>
+    </a>
+""", unsafe_allow_html=True)
 
     # **Pulsante per aprire applicazione_test.py**
     st.markdown("""
