@@ -37,7 +37,7 @@ nodes = {
     "bilanciate_gt2": "✅ Tesi\nbilanciate",
     "sbilanciate_gt2": "❌ Tesi\nsbilanciate",
 
-    # Livello intermedio per separare i tre test finali
+    # Nuovi nodi intermedi per separare i test finali
     "anova_intermedio": "📊 ANOVA\nDecisione Finale",
     "kruskal_intermedio": "📊 Kruskal-Wallis\nDecisione Finale",
     "welch_intermedio": "📊 Welch ANOVA\nDecisione Finale",
@@ -108,43 +108,43 @@ edges = [
 
 G.add_edges_from(edges)
 
-# 📌 Posizionamento dei nodi
+# 📌 Posizionamento dei nodi (corretta posizione per tutti)
 pos = {
-    "xlsx": (0, 8),
-    "num_tesi": (0, 7),
-    "tesi_2": (-2, 6),
-    "tesi_gt2": (2, 6),
+    "xlsx": (0, 9),
+    "num_tesi": (0, 8),
+    "tesi_2": (-2, 7),
+    "tesi_gt2": (2, 7),
 
-    "var_2_eq": (-3, 5),
-    "var_2_diff": (-1, 5),
-    "var_gt2_eq": (1, 5),
-    "var_gt2_diff": (3, 5),
+    "var_2_eq": (-3, 6),
+    "var_2_diff": (-1, 6),
+    "var_gt2_eq": (1, 6),
+    "var_gt2_diff": (3, 6),
 
-    "norm_2_eq_yes": (-3.5, 4),
-    "norm_2_eq_no": (-2.5, 4),
-    "norm_2_diff_yes": (-1.5, 4),
-    "norm_2_diff_no": (-0.5, 4),
-    "norm_gt2_eq_yes": (0.5, 4),
-    "norm_gt2_eq_no": (1.5, 4),
-    "norm_gt2_diff_yes": (2.5, 4),
-    "norm_gt2_diff_no": (3.5, 4),
+    "norm_2_eq_yes": (-3.5, 5),
+    "norm_2_eq_no": (-2.5, 5),
+    "norm_2_diff_yes": (-1.5, 5),
+    "norm_2_diff_no": (-0.5, 5),
+    "norm_gt2_eq_yes": (0.5, 5),
+    "norm_gt2_eq_no": (1.5, 5),
+    "norm_gt2_diff_yes": (2.5, 5),
+    "norm_gt2_diff_no": (3.5, 5),
 
-    "bilanciamento": (-3.5, 3),
-    "bilanciamento_gt2": (0.5, 3),
+    "bilanciamento": (-3.5, 4),
+    "bilanciamento_gt2": (0.5, 4),
 
-    "bilanciate": (-4, 2),
-    "sbilanciate": (-3, 2),
-    "bilanciate_gt2": (0, 2),
-    "sbilanciate_gt2": (1, 2),
+    "bilanciate": (-4, 3),
+    "sbilanciate": (-3, 3),
+    "bilanciate_gt2": (0, 3),
+    "sbilanciate_gt2": (1, 3),
 
-    "anova_intermedio": (-1, 1),
-    "kruskal_intermedio": (1, 1),
-    "welch_intermedio": (3, 1),
+    "anova_intermedio": (-1, 2),
+    "kruskal_intermedio": (1, 2),
+    "welch_intermedio": (3, 2),
 
     # Nodi finali
-    "anova_tukey": (-1, 0),
-    "kruskal": (1, 0),
-    "welch_games": (3, 0)
+    "anova_tukey": (-1, 1),
+    "kruskal": (1, 1),
+    "welch_games": (3, 1)
 }
 
 # Disegno del grafo
