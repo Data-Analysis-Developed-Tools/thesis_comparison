@@ -7,7 +7,7 @@ st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezion
 # Creazione del grafo diretto
 G = nx.DiGraph()
 
-# Etichette multilivello (testo verticale)
+# Etichette multilivello
 nodes = {
     "xlsx": "📂 File\n.xlsx\ncaricato",
     "num_tesi": "🔍 Numero\ndelle tesi",
@@ -37,11 +37,16 @@ nodes = {
     "bilanciate_gt2": "✅ Tesi\nbilanciate",
     "sbilanciate_gt2": "❌ Tesi\nsbilanciate",
 
+    # Livello intermedio per separare i tre test finali
+    "anova_intermedio": "📊 ANOVA\nDecisione Finale",
+    "kruskal_intermedio": "📊 Kruskal-Wallis\nDecisione Finale",
+    "welch_intermedio": "📊 Welch ANOVA\nDecisione Finale",
+
     # Nodi-foglia (test finali)
     "t_test": "🧪 T-test",
     "welch_ttest": "🧪 T-test\ndi Welch",
     "mann_whitney": "🧪 Mann-Whitney\nU test",
-    "kruskal": "🧪 Kruskal-Wallis\n(+ Bonferroni)",
+    "kruskal": "🧪 Kruskal-Wallis\n(+ Dunn, Bonferroni)",
     "games": "🧪 Games-Howell\ntest",
     "welch_games": "🧪 Welch ANOVA\n+ Games-Howell",
     "anova_tukey": "🧪 ANOVA\n+ Tukey HSD"
@@ -73,8 +78,8 @@ edges = [
     ("norm_2_diff_no", "mann_whitney"),
     ("norm_2_eq_no", "mann_whitney"),
 
-    # Welch T-test ✅ **CORRETTO QUI**
-    ("norm_2_diff_yes", "welch_ttest"),  # 🔹 Corretto: porta a Welch T-test, non a Welch ANOVA + Games-Howell
+    # Welch T-test
+    ("norm_2_diff_yes", "welch_ttest"),
 
     # Bilanciamento per 2 tesi
     ("norm_2_eq_yes", "bilanciamento"),
@@ -87,18 +92,23 @@ edges = [
     ("norm_gt2_eq_yes", "bilanciamento_gt2"),
     ("bilanciamento_gt2", "bilanciate_gt2"),
     ("bilanciamento_gt2", "sbilanciate_gt2"),
-    ("bilanciate_gt2", "anova_tukey"),
-    ("sbilanciate_gt2", "welch_games"),
+    ("bilanciate_gt2", "anova_intermedio"),
+    ("sbilanciate_gt2", "welch_intermedio"),
 
-    # Altri test finali
-    ("norm_gt2_eq_no", "kruskal"),
-    ("norm_gt2_diff_no", "games"),
-    ("norm_gt2_diff_yes", "welch_games")
+    # Nuovo livello di separazione dei test finali
+    ("norm_gt2_eq_no", "kruskal_intermedio"),
+    ("norm_gt2_diff_no", "kruskal_intermedio"),
+    ("norm_gt2_diff_yes", "welch_intermedio"),
+
+    # Test finali
+    ("anova_intermedio", "anova_tukey"),
+    ("kruskal_intermedio", "kruskal"),
+    ("welch_intermedio", "welch_games"),
 ]
 
 G.add_edges_from(edges)
 
-# Posizioni dei nodi (mantenendo Kruskal allineato agli altri test)
+# 📌 Posizionamento dei nodi
 pos = {
     "xlsx": (0, 8),
     "num_tesi": (0, 7),
@@ -127,21 +137,20 @@ pos = {
     "bilanciate_gt2": (0, 2),
     "sbilanciate_gt2": (1, 2),
 
-    "kruskal": (1.5, 1),  
+    "anova_intermedio": (-1, 1),
+    "kruskal_intermedio": (1, 1),
+    "welch_intermedio": (3, 1),
 
     # Nodi finali
-    "t_test": (-4, 1),
-    "welch_ttest": (-1, 1),
-    "mann_whitney": (-2, 1),
-    "games": (3.5, 1),
-    "welch_games": (2.5, 1),
-    "anova_tukey": (0, 1)
+    "anova_tukey": (-1, 0),
+    "kruskal": (1, 0),
+    "welch_games": (3, 0)
 }
 
 # Disegno del grafo
 plt.figure(figsize=(16, 12))
 nx.draw_networkx_nodes(G, pos, node_color="lightgray", node_size=3000)
-nx.draw_networkx_edges(G, pos, arrows=True, arrowstyle='-|>', arrowsize=30, width=2, edge_color="gray")
+nx.draw_networkx_edges(G, pos, arrows=True, arrowsize=30, width=2, edge_color="gray")
 nx.draw_networkx_labels(G, pos, labels=nodes, font_size=9, font_weight="bold")
 
 st.pyplot(plt)
