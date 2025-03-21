@@ -37,7 +37,7 @@ nodes = {
     "bilanciate_gt2": "✅ Tesi\nbilanciate",
     "sbilanciate_gt2": "❌ Tesi\nsbilanciate",
 
-    # Nodi-foglia
+    # Nodi-foglia (test finali)
     "t_test": "🧪 T-test",
     "welch_ttest": "🧪 T-test\ndi Welch",
     "mann_whitney": "🧪 Mann-Whitney\nU test",
@@ -99,7 +99,7 @@ edges = [
 
 G.add_edges_from(edges)
 
-# Posizioni dei nodi (bilanciamenti allineati a y = 3)
+# 📌 Posizioni dei nodi con Kruskal spostato in basso
 pos = {
     "xlsx": (0, 8),
     "num_tesi": (0, 7),
@@ -128,12 +128,14 @@ pos = {
     "bilanciate_gt2": (0, 2),
     "sbilanciate_gt2": (1, 2),
 
-    # Test finali
+    # 📌 Spostiamo Kruskal-Wallis in basso
+    "kruskal": (1.5, 1),  
+
+    # Nodi finali
     "t_test": (-4, 1),
     "welch_ttest": (-1, 1),
     "mann_whitney": (-2, 1),
-    "kruskal": (1.5, 2),
-    "games": (3.5, 2),
+    "games": (3.5, 1),
     "welch_games": (2.5, 1),
     "anova_tukey": (0, 1)
 }
