@@ -1,52 +1,96 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import networkx as nx
+import matplotlib.pyplot as plt
 
-st.set_page_config(layout="wide")
-st.markdown("<h3 style='text-align: center;'>📊 MAPPA DECISIONALE – FASE 1</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezione del Test Statistico</h3>", unsafe_allow_html=True)
 
-# 🔹 Definizione nodi e collegamenti
+# Creazione del grafo diretto
 G = nx.DiGraph()
 
-# Nodi principali
-G.add_node("file", label="📂 File .xlsx caricato")
-G.add_node("num_tesi", label="🔍 Numero delle tesi")
-G.add_node("2_tesi", label="📊 2 tesi")
-G.add_node(">2_tesi", label="📊 Più di 2 tesi")
-G.add_node("var_uguali_2", label="✅ Varianze uguali")
-G.add_node("var_diverse_2", label="❌ Varianze diverse")
-G.add_node("var_uguali_n", label="✅ Varianze uguali")
-G.add_node("var_diverse_n", label="❌ Varianze diverse")
+# Dizionario dei nodi con etichette
+nodes = {
+    "xlsx": "📂 File .xlsx caricato",
+    "num_tesi": "🔍 Numero delle tesi",
+    "tesi_2": "📊 2 tesi",
+    "tesi_gt2": "📊 >2 tesi",
 
-# Connessioni
-edges = [
-    ("file", "num_tesi"),
-    ("num_tesi", "2_tesi"),
-    ("num_tesi", ">2_tesi"),
-    ("2_tesi", "var_uguali_2"),
-    ("2_tesi", "var_diverse_2"),
-    (">2_tesi", "var_uguali_n"),
-    (">2_tesi", "var_diverse_n"),
-]
-G.add_edges_from(edges)
+    # Confronto varianze
+    "var_2_eq": "✅ Varianze uguali",
+    "var_2_diff": "❌ Varianze diverse",
+    "var_gt2_eq": "✅ Varianze uguali",
+    "var_gt2_diff": "❌ Varianze diverse",
 
-# Layout verticale
-pos = {
-    "file": (0, 4),
-    "num_tesi": (0, 3),
-    "2_tesi": (-1.5, 2),
-    ">2_tesi": (1.5, 2),
-    "var_uguali_2": (-2, 1),
-    "var_diverse_2": (-1, 1),
-    "var_uguali_n": (1, 1),
-    "var_diverse_n": (2, 1)
+    # Normalità distribuzioni
+    "norm_2_eq_yes": "✅ Tutte distribuzioni normali",
+    "norm_2_eq_no": "❌ Almeno una non normale",
+    "norm_2_diff_yes": "✅ Tutte distribuzioni normali",
+    "norm_2_diff_no": "❌ Almeno una non normale",
+
+    "norm_gt2_eq_yes": "✅ Tutte distribuzioni normali",
+    "norm_gt2_eq_no": "❌ Almeno una non normale",
+    "norm_gt2_diff_yes": "✅ Tutte distribuzioni normali",
+    "norm_gt2_diff_no": "❌ Almeno una non normale"
 }
 
-# Estrai etichette dai nodi
-labels = nx.get_node_attributes(G, "label")
+# Aggiungiamo tutti i nodi
+G.add_nodes_from(nodes.keys())
 
-# Disegno
-plt.figure(figsize=(12, 6))
-nx.draw(G, pos, with_labels=False, node_size=3000, node_color="lightgray", edge_color="gray", arrows=True, arrowsize=25, width=2)
-nx.draw_networkx_labels(G, pos, labels, font_size=10, font_weight="bold")
+# Connessioni (archi) tra nodi
+edges = [
+    ("xlsx", "num_tesi"),
+    ("num_tesi", "tesi_2"),
+    ("num_tesi", "tesi_gt2"),
+
+    # Confronto varianze per 2 tesi
+    ("tesi_2", "var_2_eq"),
+    ("tesi_2", "var_2_diff"),
+
+    # Confronto varianze per >2 tesi
+    ("tesi_gt2", "var_gt2_eq"),
+    ("tesi_gt2", "var_gt2_diff"),
+
+    # Dicotomia normalità - 2 tesi
+    ("var_2_eq", "norm_2_eq_yes"),
+    ("var_2_eq", "norm_2_eq_no"),
+    ("var_2_diff", "norm_2_diff_yes"),
+    ("var_2_diff", "norm_2_diff_no"),
+
+    # Dicotomia normalità - >2 tesi
+    ("var_gt2_eq", "norm_gt2_eq_yes"),
+    ("var_gt2_eq", "norm_gt2_eq_no"),
+    ("var_gt2_diff", "norm_gt2_diff_yes"),
+    ("var_gt2_diff", "norm_gt2_diff_no")
+]
+
+G.add_edges_from(edges)
+
+# Posizioni verticali personalizzate (layout manuale top-down)
+pos = {
+    "xlsx": (0, 6),
+    "num_tesi": (0, 5),
+    "tesi_2": (-2, 4),
+    "tesi_gt2": (2, 4),
+
+    "var_2_eq": (-3, 3),
+    "var_2_diff": (-1, 3),
+    "var_gt2_eq": (1, 3),
+    "var_gt2_diff": (3, 3),
+
+    "norm_2_eq_yes": (-3.5, 2),
+    "norm_2_eq_no": (-2.5, 2),
+    "norm_2_diff_yes": (-1.5, 2),
+    "norm_2_diff_no": (-0.5, 2),
+
+    "norm_gt2_eq_yes": (0.5, 2),
+    "norm_gt2_eq_no": (1.5, 2),
+    "norm_gt2_diff_yes": (2.5, 2),
+    "norm_gt2_diff_no": (3.5, 2),
+}
+
+# Disegno del grafo
+plt.figure(figsize=(13, 10))
+nx.draw_networkx_nodes(G, pos, node_color="lightgray", node_size=3000)
+nx.draw_networkx_edges(G, pos, arrows=True, arrowstyle='-|>', arrowsize=30, width=2, edge_color="gray")
+nx.draw_networkx_labels(G, pos, labels=nodes, font_size=9, font_weight="bold")
+
 st.pyplot(plt)
