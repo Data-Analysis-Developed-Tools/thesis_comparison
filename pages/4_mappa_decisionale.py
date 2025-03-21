@@ -88,11 +88,11 @@ else:
         else:
             path.append("t_test")
 
-# 🔹 **Imposta il layout verticale (dall'alto verso il basso)**
-pos = nx.multipartite_layout(G, subset_key=lambda node: list(nodes.keys()).index(node))
+# 🔹 **Usiamo il layout gerarchico top-down**
+pos = nx.nx_agraph.graphviz_layout(G, prog="dot")  # 🔄 Questo assicura il flusso dall'alto verso il basso
 
 # 🎨 **Disegna il grafo**
-plt.figure(figsize=(10, 12))  # 🔄 Dimensione verticale aumentata
+plt.figure(figsize=(10, 12))  # 🔄 Layout verticale più alto
 
 # **Disegna tutti i nodi in grigio chiaro per mostrare l'intero percorso**
 nx.draw(G, pos, with_labels=False, node_color="lightgray", edge_color="gray",
@@ -106,7 +106,7 @@ nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue",
 nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=2.5)
 
 # **Posizionamento delle etichette ottimizzato**
-label_pos = {key: (x, y - 0.05) for key, (x, y) in pos.items()}  # 🔄 Spostiamo il testo leggermente più in basso
+label_pos = {key: (x, y - 10) for key, (x, y) in pos.items()}  # 🔄 Abbassiamo le etichette per evitare sovrapposizioni
 nx.draw_networkx_labels(G, label_pos, labels=nodes, font_size=10, font_weight="bold")
 
 st.pyplot(plt)
