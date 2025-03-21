@@ -30,10 +30,15 @@ nodi = {
     "Diverse": "❌ Varianze diverse",
     "Shapiro": "📉 Test di Normalità (Shapiro-Wilk)",
     "Bilanciamento": "⚖️ Dati sbilanciati?",
-    "Test": "✅ Test selezionato"
+    "Kruskal": "Test: Kruskal-Wallis",
+    "Mann-Whitney": "Test: Mann-Whitney U",
+    "Welch": "Test: Welch ANOVA",
+    "Tukey": "Test: ANOVA + Tukey HSD",
+    "T-test": "Test: T-test classico",
+    "T-test Welch": "Test: T-test di Welch"
 }
 
-# Aggiunta nodi al grafo
+# 🔹 Aggiunta nodi al grafo
 G.add_nodes_from(nodi.keys())
 
 # 🔹 Definizione delle connessioni
@@ -45,7 +50,12 @@ G.add_edges_from([
     ("Uguali", "Shapiro"),
     ("Diverse", "Shapiro"),
     ("Shapiro", "Bilanciamento"),
-    ("Bilanciamento", "Test")
+    ("Bilanciamento", "Kruskal"),
+    ("Bilanciamento", "Mann-Whitney"),
+    ("Bilanciamento", "Welch"),
+    ("Bilanciamento", "Tukey"),
+    ("Bilanciamento", "T-test"),
+    ("Bilanciamento", "T-test Welch")
 ])
 
 # 🔹 Determina il percorso attivo basato sui dati
@@ -59,15 +69,15 @@ else:
 path.append("Shapiro")
 
 if almeno_una_non_normale:
-    path.append("Test: Kruskal-Wallis" if num_tesi > 2 else "Test: Mann-Whitney U")
+    path.append("Kruskal" if num_tesi > 2 else "Mann-Whitney")
 else:
     if inequality_ratio > 3:
-        path.append("Test: Welch ANOVA" if num_tesi > 2 else "Test: T-test di Welch")
+        path.append("Welch" if num_tesi > 2 else "T-test Welch")
     else:
-        path.append("Test: ANOVA + Tukey HSD" if num_tesi > 2 else "Test: T-test classico")
+        path.append("Tukey" if num_tesi > 2 else "T-test")
 
 # 🔹 Imposta il layout per evitare il bug della posizione dei nodi
-pos = nx.shell_layout(G)
+pos = nx.spring_layout(G, seed=42)
 
 # 🔹 Disegna il grafo
 plt.figure(figsize=(12, 6))
@@ -91,5 +101,5 @@ st.markdown(f"""
 - ⚖️ **Rapporto Max/Min:** {inequality_ratio:.2f}
 
 ### 📌 **Test statistico selezionato:**
-📝 **{path[-1]}**
+📝 **{nodi[path[-1]]}**
 """)
