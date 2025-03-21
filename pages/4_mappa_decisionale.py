@@ -109,43 +109,7 @@ edges = [
 G.add_edges_from(edges)
 
 # 📌 Posizionamento dei nodi (corretta posizione per tutti)
-pos = {
-    "xlsx": (0, 9),
-    "num_tesi": (0, 8),
-    "tesi_2": (-2, 7),
-    "tesi_gt2": (2, 7),
-
-    "var_2_eq": (-3, 6),
-    "var_2_diff": (-1, 6),
-    "var_gt2_eq": (1, 6),
-    "var_gt2_diff": (3, 6),
-
-    "norm_2_eq_yes": (-3.5, 5),
-    "norm_2_eq_no": (-2.5, 5),
-    "norm_2_diff_yes": (-1.5, 5),
-    "norm_2_diff_no": (-0.5, 5),
-    "norm_gt2_eq_yes": (0.5, 5),
-    "norm_gt2_eq_no": (1.5, 5),
-    "norm_gt2_diff_yes": (2.5, 5),
-    "norm_gt2_diff_no": (3.5, 5),
-
-    "bilanciamento": (-3.5, 4),
-    "bilanciamento_gt2": (0.5, 4),
-
-    "bilanciate": (-4, 3),
-    "sbilanciate": (-3, 3),
-    "bilanciate_gt2": (0, 3),
-    "sbilanciate_gt2": (1, 3),
-
-    "anova_intermedio": (-1, 2),
-    "kruskal_intermedio": (1, 2),
-    "welch_intermedio": (3, 2),
-
-    # Nodi finali
-    "anova_tukey": (-1, 1),
-    "kruskal": (1, 1),
-    "welch_games": (3, 1)
-}
+pos = {node: (0, 10 - i) for i, node in enumerate(nodes.keys())}
 
 # Disegno del grafo
 plt.figure(figsize=(16, 12))
