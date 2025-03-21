@@ -5,7 +5,7 @@ import networkx as nx
 st.markdown("<h3 style='text-align: center;'>📊 MAPPA DECISIONALE DEL TEST STATISTICO</h3>", unsafe_allow_html=True)
 
 # ✅ Controllo dati disponibili
-required_vars = ["num_cols", "inequality_ratio", "varianze_uguali", "almeno_una_non_normale"]
+required_vars = ["num_cols", "varianze_uguali"]
 missing = [var for var in required_vars if var not in st.session_state]
 
 if missing:
@@ -14,9 +14,7 @@ if missing:
 
 # ✅ Recupera dati
 num_tesi = len(st.session_state["num_cols"])
-inequality_ratio = st.session_state["inequality_ratio"]
 varianze_uguali = st.session_state["varianze_uguali"]
-almeno_una_non_normale = st.session_state["almeno_una_non_normale"]
 
 # 🔹 Creazione del grafo
 G = nx.DiGraph()
@@ -24,22 +22,15 @@ G = nx.DiGraph()
 # 🔹 Definizione dei nodi
 nodes = {
     "start": "📂 File .xlsx caricato",
-    "num_tesi": f"📊 Numero di tesi: {num_tesi}",
-    "test_tesi": "🔍 2 tesi o più di 2 tesi?",
-    "levene": "📊 Confronto varianze (Levene)",
-    "uguali": "✅ Varianze uguali",
-    "diverse": "❌ Varianze diverse",
-    "shapiro": "📉 Test di Normalità (Shapiro-Wilk)",
-    "normali": "✅ Tutte le distribuzioni normali",
-    "non_normali": "❌ Almeno una distribuzione non normale",
-    "bilanciamento": "⚖️ Controllo bilanciamento",
-    "kruskal": "📊 Test selezionato: Kruskal-Wallis",
-    "mann_whitney": "📊 Test selezionato: Mann-Whitney U",
-    "welch_anova": "📊 Test selezionato: Welch ANOVA",
-    "tukey": "📊 Test selezionato: ANOVA + Tukey HSD",
-    "t_test": "📊 Test selezionato: T-test classico",
-    "t_test_welch": "📊 Test selezionato: T-test di Welch",
-    "games_howell": "📊 Test selezionato: Welch ANOVA + Games-Howell"
+    "num_tesi": "🔍 Numero delle tesi",
+    "tesi_2": "📊 2 tesi",
+    "tesi_maggiori": "📊 Più di 2 tesi",
+    "levene_2": "📉 Confronto delle varianze (Levene)",
+    "levene_maggiori": "📉 Confronto delle varianze (Levene)",
+    "uguali_2": "✅ Varianze statisticamente uguali",
+    "diverse_2": "❌ Varianze statisticamente diverse",
+    "uguali_maggiori": "✅ Varianze statisticamente uguali",
+    "diverse_maggiori": "❌ Varianze statisticamente diverse"
 }
 
 # Aggiunta nodi al grafo
@@ -48,66 +39,36 @@ G.add_nodes_from(nodes.keys())
 # 🔹 Definizione delle connessioni
 edges = [
     ("start", "num_tesi"),
-    ("num_tesi", "test_tesi"),
-    ("test_tesi", "levene"),
-    ("levene", "uguali"),
-    ("levene", "diverse"),
-    ("uguali", "shapiro"),
-    ("diverse", "shapiro"),
-    ("shapiro", "normali"),
-    ("shapiro", "non_normali"),
-    ("normali", "bilanciamento"),
-    ("non_normali", "bilanciamento"),
-    ("bilanciamento", "kruskal"),
-    ("bilanciamento", "mann_whitney"),
-    ("bilanciamento", "welch_anova"),
-    ("bilanciamento", "tukey"),
-    ("bilanciamento", "t_test"),
-    ("bilanciamento", "t_test_welch"),
-    ("bilanciamento", "games_howell")
+    ("num_tesi", "tesi_2"),
+    ("num_tesi", "tesi_maggiori"),
+    ("tesi_2", "levene_2"),
+    ("tesi_maggiori", "levene_maggiori"),
+    ("levene_2", "uguali_2"),
+    ("levene_2", "diverse_2"),
+    ("levene_maggiori", "uguali_maggiori"),
+    ("levene_maggiori", "diverse_maggiori")
 ]
 G.add_edges_from(edges)
 
 # 🔹 Determina il percorso attivo basato sui dati
-path = ["start", "num_tesi", "test_tesi"]
+path = ["start", "num_tesi"]
 if num_tesi == 2:
-    path.append("levene")
-else:
-    path.append("levene")
-
-if varianze_uguali:
-    path.append("uguali")
-else:
-    path.append("diverse")
-
-path.append("shapiro")
-
-if almeno_una_non_normale:
-    path.append("non_normali")
-else:
-    path.append("normali")
-
-path.append("bilanciamento")
-
-if almeno_una_non_normale:
-    if num_tesi > 2:
-        path.append("kruskal")
+    path.append("tesi_2")
+    path.append("levene_2")
+    if varianze_uguali:
+        path.append("uguali_2")
     else:
-        path.append("mann_whitney")
+        path.append("diverse_2")
 else:
-    if inequality_ratio > 3:
-        if num_tesi > 2:
-            path.append("games_howell")
-        else:
-            path.append("t_test_welch")
+    path.append("tesi_maggiori")
+    path.append("levene_maggiori")
+    if varianze_uguali:
+        path.append("uguali_maggiori")
     else:
-        if num_tesi > 2:
-            path.append("tukey")
-        else:
-            path.append("t_test")
+        path.append("diverse_maggiori")
 
 # 🔹 **Usiamo il layout gerarchico senza `pygraphviz`**
-pos = nx.spring_layout(G, seed=42, k=2.5, center=(0, 0))  # 🔥 k=2.5 aumenta la distanza tra i nodi
+pos = nx.multipartite_layout(G, subset_key=lambda n: list(nodes.keys()).index(n))
 
 # 🎨 **Disegna il grafo**
 plt.figure(figsize=(10, 12))  # 🔄 Layout verticale più alto
@@ -134,9 +95,4 @@ st.markdown(f"""
 ### ✅ **Analisi completata!**
 - 🔍 **Numero di tesi:** {num_tesi}
 - 📊 **Varianze uguali?** {"✅ Sì" if varianze_uguali else "❌ No"}
-- 📉 **Almeno una distribuzione non normale?** {"❌ Sì" if almeno_una_non_normale else "✅ No"}
-- ⚖️ **Rapporto Max/Min:** {inequality_ratio:.2f}
-
-### 📌 **Test statistico selezionato:**
-📝 **{nodes[path[-1]]}**
 """)
