@@ -6,9 +6,9 @@ from scipy import stats
 # 🔹 Titolo della pagina
 st.markdown("<h3 style='text-align: center;'>📊 INDIVIDUAZIONE DEGLI OUTLIER</h3>", unsafe_allow_html=True)
 
-# ✅ Controlliamo che "num_cols" e "df" siano stati salvati correttamente dalla pagina precedente
+# ✅ Controlliamo che "num_cols" e "df" siano disponibili
 if "num_cols" not in st.session_state or "df" not in st.session_state:
-    st.error("⚠️ Dati mancanti! Torna alla sezione 'Analisi Preliminare' ed esegui l'analisi prima di procedere.")
+    st.warning("⚠️ I dati non sono disponibili. Assicurati di completare l'Analisi Preliminare prima di procedere.")
     st.stop()
 
 num_cols = st.session_state["num_cols"]
@@ -18,13 +18,12 @@ df = st.session_state["df"]
 
 ### ✅ Test di Grubbs
 def grubbs_test(data, alpha=0.05):
-    """Test di Grubbs per identificare un singolo outlier in un dataset."""
+    """Identifica un singolo outlier nei dati normalmente distribuiti."""
     mean = np.mean(data)
     std_dev = np.std(data, ddof=1)
     G = np.abs(data - mean) / std_dev
     n = len(data)
-    
-    # Valore critico di Grubbs
+
     t = stats.t.ppf(1 - alpha / (2 * n), n - 2)
     G_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t**2 / (n - 2 + t**2))
 
@@ -32,21 +31,23 @@ def grubbs_test(data, alpha=0.05):
 
 ### ✅ Test di Dixon (Q-test)
 def dixon_q_test(data, alpha=0.05):
-    """Test di Dixon per identificare un outlier nei dataset piccoli."""
+    """Identifica un outlier nei dataset piccoli."""
     data_sorted = np.sort(data)
+    if len(data_sorted) < 3:
+        return False, None, None  # Non applicabile se ci sono meno di 3 valori
+
     Q_exp = (data_sorted[-1] - data_sorted[-2]) / (data_sorted[-1] - data_sorted[0])
-    
-    # Valori critici tabulati per il test di Dixon
-    Q_crit = {5: 0.71, 10: 0.41, 20: 0.29}  # Per alcuni valori di n
+    Q_crit = {5: 0.71, 10: 0.41, 20: 0.29}  # Valori critici tabulati
     n = len(data_sorted)
+
     if n in Q_crit:
         return Q_exp > Q_crit[n], Q_exp, Q_crit[n]
     else:
         return False, Q_exp, None  # Non applicabile per n non tabulati
 
-### ✅ Test di Rosner (per più outlier)
+### ✅ Test di Rosner
 def rosner_test(data, alpha=0.05, max_outliers=3):
-    """Test di Rosner per l'individuazione di più outlier."""
+    """Identifica più outlier contemporaneamente."""
     outliers = []
     data_copy = np.copy(data)
 
@@ -55,15 +56,14 @@ def rosner_test(data, alpha=0.05, max_outliers=3):
         std_dev = np.std(data_copy, ddof=1)
         R = np.abs(data_copy - mean) / std_dev
 
-        # Calcola il valore critico
         n = len(data_copy)
         t = stats.t.ppf(1 - alpha / (2 * n), n - 2)
         R_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t**2 / (n - 2 + t**2))
 
         max_R_index = np.argmax(R)
         if R[max_R_index] > R_crit:
-            outliers.append(data_copy[max_R_index])
-            data_copy = np.delete(data_copy, max_R_index)  # Rimuove l'outlier individuato
+            outliers.append(float(data_copy[max_R_index]))  # Convertiamo il valore in float normale
+            data_copy = np.delete(data_copy, max_R_index)
         else:
             break
 
@@ -90,14 +90,22 @@ for col in num_cols:
         "Dixon (Outlier?)": "✅ Sì" if is_outlier_dixon else "❌ No",
         "Rosner (Outlier?)": f"{len(outliers_rosner)} rilevati" if outliers_rosner else "❌ No",
         "Dettagli Grubbs": f"G max={max(G_values):.2f}, G crit={G_crit:.2f}",
-        "Dettagli Dixon": f"Q={Q_value:.2f}, Q crit={Q_crit:.2f}" if Q_crit else "N/A",
-        "Dettagli Rosner": f"Outliers: {outliers_rosner}" if outliers_rosner else "N/A"
+        "Dettagli Dixon": f"Q={Q_value:.2f}, Q crit={Q_crit:.2f}" if Q_crit else "Non applicabile",
+        "Dettagli Rosner": f"Outliers: {', '.join(map(str, outliers_rosner))}" if outliers_rosner else "Nessun outlier"
     })
 
 # **Visualizzazione risultati**
 results_df = pd.DataFrame(outlier_results)
 st.subheader("📊 **Risultati dei Test di Outlier**")
 st.dataframe(results_df, width=900)
+
+# **Spiegazione dei test**
+st.markdown("""
+### 📌 **Descrizione dei test utilizzati**
+✔ **Test di Grubbs**: Identifica un singolo outlier nei dati normalmente distribuiti. Utilizzato in contesti normativi come **ASTM E178** e **ISO 5725**.  
+✔ **Test di Dixon (Q-test)**: Adatto per dataset **piccoli**. Raccomandato dall'**IUPAC** per la validazione di metodi chimici.  
+✔ **Test di Rosner**: Permette di identificare **più outlier contemporaneamente**. Applicato nei laboratori chimici per analisi robuste.  
+""")
 
 # **Salviamo i risultati per la prossima pagina**
 st.session_state["outlier_results"] = results_df
