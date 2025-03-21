@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 from scipy import stats
-from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 # 🔹 Titolo della pagina
 st.markdown("<h3 style='text-align: center;'>📊 INDIVIDUAZIONE DEGLI OUTLIER</h3>", unsafe_allow_html=True)
@@ -12,15 +11,8 @@ if "uploaded_file" not in st.session_state or st.session_state["uploaded_file"] 
     st.error("⚠️ Nessun file caricato. Torna alla sezione 'Analisi Preliminare' e carica un file Excel prima di procedere.")
     st.stop()
 
-# **Recuperiamo il file e il DataFrame**
-uploaded_file = st.session_state["uploaded_file"]
-df = pd.read_excel(uploaded_file)
-
-st.success("✅ Dati caricati correttamente!")
-st.dataframe(df.head())  # Mostra un'anteprima dei dati
-
 # **Recuperiamo le colonne numeriche**
-num_cols = df.select_dtypes(include=['number']).columns
+num_cols = st.session_state["num_cols"]
 if len(num_cols) < 2:
     st.error("⚠️ Il file deve contenere almeno due colonne numeriche per eseguire l'analisi degli outlier.")
     st.stop()
@@ -90,7 +82,7 @@ def rosner_test(data, alpha=0.05, max_outliers=3):
 outlier_results = []
 
 for col in num_cols:
-    data = df[col].dropna().values
+    data = st.session_state["df"][col].dropna().values
     
     # Test di Grubbs
     is_outlier_grubbs, G_values, G_crit = grubbs_test(data)
