@@ -32,8 +32,13 @@ if num_tesi == 2:
 
     decisioni.append("📉 Test di Normalità (Shapiro-Wilk)")
     if almeno_una_non_normale:
-        decisioni.append("📊 **Test selezionato: Mann-Whitney U**")
+        decisioni.append("⚖️ Controllo bilanciamento tra numerosità")
+        if inequality_ratio > 3:
+            decisioni.append("📊 **Test selezionato: Mann-Whitney U**")
+        else:
+            decisioni.append("📊 **Test selezionato: T-test di Welch**")
     else:
+        decisioni.append("⚖️ Controllo bilanciamento tra numerosità")
         if inequality_ratio > 3:
             decisioni.append("📊 **Test selezionato: T-test di Welch**")
         else:
@@ -49,22 +54,25 @@ else:
     if almeno_una_non_normale:
         decisioni.append("📊 **Test selezionato: Kruskal-Wallis**")
     else:
+        decisioni.append("⚖️ Controllo bilanciamento tra numerosità")
         if inequality_ratio > 3:
-            decisioni.append("📊 **Test selezionato: Welch ANOVA**")
+            decisioni.append("📊 **Test selezionato: Welch ANOVA + Games-Howell**")
         else:
             decisioni.append("📊 **Test selezionato: ANOVA + Tukey HSD**")
 
 # 🎨 **Creazione del grafico**
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(10, 7))
 ax.set_xlim(0, 10)
 ax.set_ylim(0, len(decisioni) + 1)
 ax.axis("off")
 
 # 🔹 **Disegna i rettangoli e le connessioni**
 for i, step in enumerate(decisioni):
+    # Colore differenziato per le decisioni
+    color = "lightblue" if "Test selezionato" in step else "lightgray"
     ax.add_patch(patches.FancyBboxPatch((3, len(decisioni) - i), 4, 0.8, 
                                         boxstyle="round,pad=0.3", 
-                                        edgecolor="black", facecolor="lightblue"))
+                                        edgecolor="black", facecolor=color))
     ax.text(5, len(decisioni) - i + 0.4, step, ha="center", va="center", fontsize=10, weight="bold")
 
     # Connessioni
