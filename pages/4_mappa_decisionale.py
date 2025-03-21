@@ -7,35 +7,34 @@ st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezion
 # Creazione del grafo diretto
 G = nx.DiGraph()
 
-# Dizionario dei nodi con etichette
+# Dizionario dei nodi con etichette multilivello (testo verticale)
 nodes = {
-    "xlsx": "📂 File .xlsx caricato",
-    "num_tesi": "🔍 Numero delle tesi",
-    "tesi_2": "📊 2 tesi",
-    "tesi_gt2": "📊 >2 tesi",
+    "xlsx": "📂 File\n.xlsx\ncaricato",
+    "num_tesi": "🔍 Numero\ndelle tesi",
+    "tesi_2": "📊 2\ntesi",
+    "tesi_gt2": "📊 >2\ntesi",
 
     # Confronto varianze
-    "var_2_eq": "✅ Varianze uguali",
-    "var_2_diff": "❌ Varianze diverse",
-    "var_gt2_eq": "✅ Varianze uguali",
-    "var_gt2_diff": "❌ Varianze diverse",
+    "var_2_eq": "✅ Varianze\nstatisticamente\nuguali",
+    "var_2_diff": "❌ Varianze\nstatisticamente\ndiverse",
+    "var_gt2_eq": "✅ Varianze\nstatisticamente\nuguali",
+    "var_gt2_diff": "❌ Varianze\nstatisticamente\ndiverse",
 
     # Normalità distribuzioni
-    "norm_2_eq_yes": "✅ Tutte distribuzioni normali",
-    "norm_2_eq_no": "❌ Almeno una non normale",
-    "norm_2_diff_yes": "✅ Tutte distribuzioni normali",
-    "norm_2_diff_no": "❌ Almeno una non normale",
-
-    "norm_gt2_eq_yes": "✅ Tutte distribuzioni normali",
-    "norm_gt2_eq_no": "❌ Almeno una non normale",
-    "norm_gt2_diff_yes": "✅ Tutte distribuzioni normali",
-    "norm_gt2_diff_no": "❌ Almeno una non normale"
+    "norm_2_eq_yes": "✅ Tutte le\ndistribuzioni\nnormali",
+    "norm_2_eq_no": "❌ Almeno una\ndistribuzione\nnon normale",
+    "norm_2_diff_yes": "✅ Tutte le\ndistribuzioni\nnormali",
+    "norm_2_diff_no": "❌ Almeno una\ndistribuzione\nnon normale",
+    "norm_gt2_eq_yes": "✅ Tutte le\ndistribuzioni\nnormali",
+    "norm_gt2_eq_no": "❌ Almeno una\ndistribuzione\nnon normale",
+    "norm_gt2_diff_yes": "✅ Tutte le\ndistribuzioni\nnormali",
+    "norm_gt2_diff_no": "❌ Almeno una\ndistribuzione\nnon normale"
 }
 
-# Aggiungiamo tutti i nodi
+# Aggiungiamo i nodi
 G.add_nodes_from(nodes.keys())
 
-# Connessioni (archi) tra nodi
+# Connessioni tra i nodi
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"),
@@ -49,13 +48,13 @@ edges = [
     ("tesi_gt2", "var_gt2_eq"),
     ("tesi_gt2", "var_gt2_diff"),
 
-    # Dicotomia normalità - 2 tesi
+    # Normalità distribuzioni per 2 tesi
     ("var_2_eq", "norm_2_eq_yes"),
     ("var_2_eq", "norm_2_eq_no"),
     ("var_2_diff", "norm_2_diff_yes"),
     ("var_2_diff", "norm_2_diff_no"),
 
-    # Dicotomia normalità - >2 tesi
+    # Normalità distribuzioni per >2 tesi
     ("var_gt2_eq", "norm_gt2_eq_yes"),
     ("var_gt2_eq", "norm_gt2_eq_no"),
     ("var_gt2_diff", "norm_gt2_diff_yes"),
@@ -64,7 +63,7 @@ edges = [
 
 G.add_edges_from(edges)
 
-# Posizioni verticali personalizzate (layout manuale top-down)
+# Posizioni personalizzate per un layout verticale
 pos = {
     "xlsx": (0, 6),
     "num_tesi": (0, 5),
