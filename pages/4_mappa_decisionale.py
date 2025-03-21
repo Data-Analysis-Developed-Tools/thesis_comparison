@@ -73,8 +73,8 @@ edges = [
     ("norm_2_diff_no", "mann_whitney"),
     ("norm_2_eq_no", "mann_whitney"),
 
-    # Welch T-test
-    ("norm_2_diff_yes", "welch_ttest"),
+    # Welch T-test ✅ **CORRETTO QUI**
+    ("norm_2_diff_yes", "welch_ttest"),  # 🔹 Corretto: porta a Welch T-test, non a Welch ANOVA + Games-Howell
 
     # Bilanciamento per 2 tesi
     ("norm_2_eq_yes", "bilanciamento"),
@@ -93,13 +93,12 @@ edges = [
     # Altri test finali
     ("norm_gt2_eq_no", "kruskal"),
     ("norm_gt2_diff_no", "games"),
-    ("norm_2_diff_yes", "welch_games"),
     ("norm_gt2_diff_yes", "welch_games")
 ]
 
 G.add_edges_from(edges)
 
-# 📌 Posizioni dei nodi con Kruskal spostato in basso
+# Posizioni dei nodi (mantenendo Kruskal allineato agli altri test)
 pos = {
     "xlsx": (0, 8),
     "num_tesi": (0, 7),
@@ -128,7 +127,6 @@ pos = {
     "bilanciate_gt2": (0, 2),
     "sbilanciate_gt2": (1, 2),
 
-    # 📌 Spostiamo Kruskal-Wallis in basso
     "kruskal": (1.5, 1),  
 
     # Nodi finali
