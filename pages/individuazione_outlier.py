@@ -6,24 +6,19 @@ from scipy import stats
 # 🔹 Titolo della pagina
 st.markdown("<h3 style='text-align: center;'>📊 INDIVIDUAZIONE DEGLI OUTLIER</h3>", unsafe_allow_html=True)
 
-# **Verifica se i dati sono disponibili in `st.session_state`**
-if "uploaded_file" not in st.session_state or st.session_state["uploaded_file"] is None:
-    st.error("⚠️ Nessun file caricato. Torna alla sezione 'Analisi Preliminare' e carica un file Excel prima di procedere.")
+# ✅ Controlliamo che "num_cols" e "df" siano stati salvati correttamente dalla pagina precedente
+if "num_cols" not in st.session_state or "df" not in st.session_state:
+    st.error("⚠️ Dati mancanti! Torna alla sezione 'Analisi Preliminare' ed esegui l'analisi prima di procedere.")
     st.stop()
 
-# **Recuperiamo le colonne numeriche**
 num_cols = st.session_state["num_cols"]
-if len(num_cols) < 2:
-    st.error("⚠️ Il file deve contenere almeno due colonne numeriche per eseguire l'analisi degli outlier.")
-    st.stop()
+df = st.session_state["df"]
 
 # **Definizione delle funzioni per i test di outlier**
 
 ### ✅ Test di Grubbs
 def grubbs_test(data, alpha=0.05):
-    """
-    Test di Grubbs per identificare un singolo outlier in un dataset.
-    """
+    """Test di Grubbs per identificare un singolo outlier in un dataset."""
     mean = np.mean(data)
     std_dev = np.std(data, ddof=1)
     G = np.abs(data - mean) / std_dev
@@ -37,9 +32,7 @@ def grubbs_test(data, alpha=0.05):
 
 ### ✅ Test di Dixon (Q-test)
 def dixon_q_test(data, alpha=0.05):
-    """
-    Test di Dixon per identificare un outlier nei dataset piccoli.
-    """
+    """Test di Dixon per identificare un outlier nei dataset piccoli."""
     data_sorted = np.sort(data)
     Q_exp = (data_sorted[-1] - data_sorted[-2]) / (data_sorted[-1] - data_sorted[0])
     
@@ -53,9 +46,7 @@ def dixon_q_test(data, alpha=0.05):
 
 ### ✅ Test di Rosner (per più outlier)
 def rosner_test(data, alpha=0.05, max_outliers=3):
-    """
-    Test di Rosner per l'individuazione di più outlier.
-    """
+    """Test di Rosner per l'individuazione di più outlier."""
     outliers = []
     data_copy = np.copy(data)
 
@@ -82,7 +73,7 @@ def rosner_test(data, alpha=0.05, max_outliers=3):
 outlier_results = []
 
 for col in num_cols:
-    data = st.session_state["df"][col].dropna().values
+    data = df[col].dropna().values
     
     # Test di Grubbs
     is_outlier_grubbs, G_values, G_crit = grubbs_test(data)
