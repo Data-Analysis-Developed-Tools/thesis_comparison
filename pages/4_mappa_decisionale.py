@@ -96,14 +96,14 @@ plt.figure(figsize=(10, 12))  # 🔄 Layout verticale più alto
 
 # **Disegna tutti i nodi in grigio chiaro per mostrare l'intero percorso**
 nx.draw(G, pos, with_labels=False, node_color="lightgray", edge_color="gray",
-        node_size=2500, alpha=0.7)
+        node_size=2500, alpha=0.7, arrows=True, arrowsize=35, width=3)
 
 # **Evidenzia il percorso selezionato in BLU con frecce più grandi**
 highlight_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
 highlight_nodes = path
 
 nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue", node_size=3000)
-nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=3.5, arrows=True, arrowsize=20)
+nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=4.5, arrows=True, arrowsize=35)
 
 # **Posizionamento delle etichette ottimizzato**
 label_pos = {key: (x, y - 0.05) for key, (x, y) in pos.items()}  # 🔄 Abbassiamo il testo per evitare sovrapposizioni
