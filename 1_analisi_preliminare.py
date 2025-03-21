@@ -20,7 +20,7 @@ if "uploaded_file" not in st.session_state:
     st.session_state["results_df"] = None
     st.session_state["df"] = None
     st.session_state["num_cols"] = None
-    st.session_state["inequality_ratio"] = None  # ✅ Aggiunto per correggere l'errore in applicazione_test.py
+    st.session_state["inequality_ratio"] = None
 
 # Selezione del livello di significatività
 selected_level = st.selectbox(
@@ -73,14 +73,40 @@ if st.session_state["uploaded_file"] is not None:
             else:
                 balance_comment = "Dati fortemente sbilanciati, possibile distorsione nei test statistici"
 
+            # **Test di Levene**
             levene_stat, levene_p = levene(*[df[col].dropna() for col in num_cols])
             varianze_uguali = levene_p > alpha
 
+            # **Test di Shapiro-Wilk**
+            normalita_results = []
+            almeno_una_non_normale = False
+
+            for col in num_cols:
+                shapiro_stat, shapiro_p = shapiro(df[col].dropna())
+                normale = shapiro_p > alpha
+                normalita_results.append([
+                    col, f"{shapiro_stat:.4f}", f"{shapiro_p:.4f}", "✅ Sì" if normale else "❌ No"
+                ])
+                if not normale:
+                    almeno_una_non_normale = True
+
+            normalita_df = pd.DataFrame(
+                normalita_results,
+                columns=["Tesi", "Statistica Shapiro-Wilk", "p-value", "Distribuzione Normale"]
+            )
+
+            # ✅ Salvataggio in session_state
             st.session_state["num_cols"] = num_cols
             st.session_state["df"] = df.copy()
-            st.session_state["inequality_ratio"] = inequality_ratio  # ✅ Ora viene salvato correttamente!
+            st.session_state["inequality_ratio"] = inequality_ratio
+            st.session_state["normalita_df"] = normalita_df
 
-# Pulsanti di navigazione
+# **Mostra i risultati**
+if st.session_state["normalita_df"] is not None:
+    st.subheader("📊 **Dettaglio del Test di Normalità (Shapiro-Wilk)**")
+    st.dataframe(st.session_state["normalita_df"], width=750)
+
+# **Pulsanti di navigazione**
 st.markdown("""
     <a href="/individuazione_outlier" target="_blank">
         <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
