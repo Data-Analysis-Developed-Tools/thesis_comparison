@@ -5,3 +5,5 @@ statsmodels
 pingouin
 openpyxl
 scikit-posthocs
+networkx
+matplotlib
