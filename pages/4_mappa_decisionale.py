@@ -67,8 +67,11 @@ else:
     else:
         path.append("diverse_maggiori")
 
-# 🔹 **Usiamo il layout gerarchico senza `pygraphviz`**
-pos = nx.multipartite_layout(G, subset_key=lambda n: list(nodes.keys()).index(n))
+# 🔹 **Usiamo un layout gerarchico verticale (se `pygraphviz` è disponibile)**
+try:
+    pos = nx.nx_agraph.graphviz_layout(G, prog="dot")  # 🔄 Disposizione dall'alto verso il basso
+except ImportError:
+    pos = nx.spring_layout(G, seed=42, k=2.5)  # 🔥 Alternativa se `pygraphviz` non è disponibile
 
 # 🎨 **Disegna il grafo**
 plt.figure(figsize=(10, 12))  # 🔄 Layout verticale più alto
@@ -85,7 +88,7 @@ nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue",
 nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=4.5, arrows=True, arrowsize=35)
 
 # **Posizionamento delle etichette ottimizzato**
-label_pos = {key: (x, y - 0.05) for key, (x, y) in pos.items()}  # 🔄 Abbassiamo il testo per evitare sovrapposizioni
+label_pos = {key: (x, y - 5) for key, (x, y) in pos.items()}  # 🔄 Abbassiamo il testo per evitare sovrapposizioni
 nx.draw_networkx_labels(G, label_pos, labels=nodes, font_size=10, font_weight="bold")
 
 st.pyplot(plt)
