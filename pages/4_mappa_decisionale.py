@@ -7,43 +7,43 @@ st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezion
 # Creazione del grafo diretto
 G = nx.DiGraph()
 
-# Definizione dei nodi
+# Definizione dei nodi con etichette descrittive
 nodes = {
-    "xlsx": "📂 File\n.xlsx\ncaricato",
+    "xlsx": "📂 File .xlsx\nCaricato",
     "num_tesi": "🔍 Numero\ndelle tesi",
-    "tesi_2": "📊 2\ntesi",
-    "tesi_gt2": "📊 >2\ntesi",
+    "tesi_2": "📊 2 Tesi",
+    "tesi_gt2": "📊 >2 Tesi",
 
-    "var_2_eq": "✅ Varianze\nuguali",
-    "var_2_diff": "❌ Varianze\ndiverse",
-    "var_gt2_eq": "✅ Varianze\nuguali",
-    "var_gt2_diff": "❌ Varianze\ndiverse",
+    "var_2_eq": "✅ Varianze\nUguali",
+    "var_2_diff": "❌ Varianze\nDiverse",
+    "var_gt2_eq": "✅ Varianze\nUguali",
+    "var_gt2_diff": "❌ Varianze\nDiverse",
 
-    "norm_2_eq_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_2_eq_no": "❌ Almeno una\nnon normale",
-    "norm_2_diff_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_2_diff_no": "❌ Almeno una\nnon normale",
-    "norm_gt2_eq_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_gt2_eq_no": "❌ Almeno una\nnon normale",
-    "norm_gt2_diff_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_gt2_diff_no": "❌ Almeno una\nnon normale",
+    "norm_2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
+    "norm_2_eq_no": "❌ Almeno una\nNon Normale",
+    "norm_2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
+    "norm_2_diff_no": "❌ Almeno una\nNon Normale",
+    "norm_gt2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
+    "norm_gt2_eq_no": "❌ Almeno una\nNon Normale",
+    "norm_gt2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
+    "norm_gt2_diff_no": "❌ Almeno una\nNon Normale",
 
-    "bilanciamento": "⚖️ Bilanciamento\ndelle tesi",
-    "bilanciate": "✅ Tesi\nbilanciate",
-    "sbilanciate": "❌ Tesi\nsbilanciate",
+    "bilanciamento": "⚖️ Bilanciamento\nDelle Tesi",
+    "bilanciate": "✅ Tesi\nBilanciate",
+    "sbilanciate": "❌ Tesi\nSbilanciate",
 
-    "bilanciamento_gt2": "⚖️ Bilanciamento\ndelle tesi",
-    "bilanciate_gt2": "✅ Tesi\nbilanciate",
-    "sbilanciate_gt2": "❌ Tesi\nsbilanciate",
+    "bilanciamento_gt2": "⚖️ Bilanciamento\nDelle Tesi",
+    "bilanciate_gt2": "✅ Tesi\nBilanciate",
+    "sbilanciate_gt2": "❌ Tesi\nSbilanciate",
 
     # Nodi di decisione finale
     "anova_tukey": "🧪 ANOVA\n+ Tukey HSD",
-    "kruskal": "🧪 Kruskal-Wallis\n(+ Dunn, Bonferroni)",
+    "kruskal": "🧪 Kruskal-Wallis\n+ Dunn Bonferroni",
     "welch_games": "🧪 Welch ANOVA\n+ Games-Howell",
     "t_test": "🧪 T-test",
-    "welch_ttest": "🧪 T-test\ndi Welch",
-    "mann_whitney": "🧪 Mann-Whitney\nU test",
-    "games": "🧪 Games-Howell\ntest"
+    "welch_ttest": "🧪 T-test di Welch",
+    "mann_whitney": "🧪 Mann-Whitney U test",
+    "games": "🧪 Games-Howell test"
 }
 
 G.add_nodes_from(nodes.keys())
