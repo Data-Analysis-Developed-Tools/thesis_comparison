@@ -88,15 +88,15 @@ else:
         else:
             path.append("t_test")
 
-# 🔹 Imposta il layout **senza `pygraphviz`**
-pos = nx.shell_layout(G)
+# 🔹 **Usiamo un layout più spazioso**
+pos = nx.spring_layout(G, seed=42, k=2.0)  # 🔥 k=2.0 aumenta la distanza tra i nodi
 
 # 🎨 **Disegna il grafo**
 plt.figure(figsize=(12, 8))
 
 # **Disegna tutti i nodi in grigio chiaro per mostrare l'intero percorso**
-nx.draw(G, pos, with_labels=True, labels=nodes, node_color="lightgray", edge_color="gray",
-        node_size=2500, font_size=9, font_weight="bold", alpha=0.7)
+nx.draw(G, pos, with_labels=False, node_color="lightgray", edge_color="gray",
+        node_size=2500, alpha=0.7)
 
 # **Evidenzia il percorso selezionato in BLU**
 highlight_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
@@ -104,6 +104,10 @@ highlight_nodes = path
 
 nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue", node_size=3000)
 nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=2.5)
+
+# **Posizionamento ottimizzato delle etichette**
+label_pos = {key: (x, y + 0.05) for key, (x, y) in pos.items()}  # 🔄 Spostiamo leggermente il testo verso l'alto
+nx.draw_networkx_labels(G, label_pos, labels=nodes, font_size=10, font_weight="bold")
 
 st.pyplot(plt)
 
