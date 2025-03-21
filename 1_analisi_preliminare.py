@@ -1,117 +1,165 @@
 import pandas as pd
-import numpy as np
 import streamlit as st
-from scipy import stats
+from scipy.stats import levene, shapiro
 
 # 🔹 Titolo della pagina
-st.markdown("<h3 style='text-align: center;'>📊 INDIVIDUAZIONE DEGLI OUTLIER</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>📊 ANALISI PRELIMINARE DELLE TESI</h3>", unsafe_allow_html=True)
 
-# ✅ Controlliamo che "num_cols" e "df" siano disponibili
-if "num_cols" not in st.session_state or "df" not in st.session_state:
-    st.error("⚠️ Dati mancanti! Torna alla sezione 'Analisi Preliminare' ed esegui l'analisi prima di procedere.")
-    st.stop()
+# Opzioni per il livello di significatività
+sig_levels = {
+    "90% (α = 0.10)": 0.10,
+    "95% (α = 0.05)": 0.05,
+    "99% (α = 0.01)": 0.01,
+    "99.9% (α = 0.001)": 0.001
+}
 
-num_cols = st.session_state["num_cols"]
-df = st.session_state["df"]
+# **Inizializza `st.session_state` per mantenere i risultati tra le sessioni**
+if "uploaded_file" not in st.session_state:
+    st.session_state["uploaded_file"] = None
+    st.session_state["alpha"] = 0.05
+    st.session_state["results_df"] = None
+    st.session_state["df"] = None
+    st.session_state["num_cols"] = None
 
-# **Definizione delle funzioni per i test di outlier**
+# Selezione del livello di significatività
+selected_level = st.selectbox(
+    "📊 Seleziona il livello di significatività prima di caricare il file:",
+    options=list(sig_levels.keys()),
+    index=1
+)
 
-### ✅ Test di Grubbs
-def grubbs_test(data, alpha=0.05):
-    mean = np.mean(data)
-    std_dev = np.std(data, ddof=1)
-    G = np.abs(data - mean) / std_dev
-    n = len(data)
-    
-    t = stats.t.ppf(1 - alpha / (2 * n), n - 2)
-    G_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t**2 / (n - 2 + t**2))
+# Memorizzazione del valore scelto
+alpha = sig_levels[selected_level]
+st.session_state["alpha"] = alpha
 
-    return G > G_crit, G, G_crit
+# Upload del file Excel
+uploaded_file = st.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
 
-### ✅ Test di Dixon (Q-test)
-def dixon_q_test(data, alpha=0.05):
-    data_sorted = np.sort(data)
-    if len(data_sorted) < 3:
-        return False, None, None  # Non applicabile se ci sono meno di 3 valori
+def load_data(uploaded_file):
+    try:
+        df = pd.read_excel(uploaded_file)
+        return df
+    except Exception as e:
+        st.error(f"❌ Errore nel caricamento del file: {e}")
+        return None
 
-    Q_exp = (data_sorted[-1] - data_sorted[-2]) / (data_sorted[-1] - data_sorted[0])
-    Q_crit = {5: 0.71, 10: 0.41, 20: 0.29}  # Valori critici tabulati
-    n = len(data_sorted)
+# Se un file è stato caricato per la prima volta, salviamolo
+if uploaded_file is not None:
+    st.session_state["uploaded_file"] = uploaded_file
 
-    if n in Q_crit:
-        return Q_exp > Q_crit[n], Q_exp, Q_crit[n]
-    else:
-        return False, Q_exp, None  # Non applicabile per n non tabulati
+# Se abbiamo già un file caricato
+if st.session_state["uploaded_file"] is not None:
+    df = load_data(st.session_state["uploaded_file"])
+    if df is not None:
+        st.write("✅ **File caricato con successo!**")
+        st.dataframe(df.head())
+        st.write(f"🔬 **Livello di significatività selezionato:** {selected_level} (α = {alpha})")
 
-### ✅ Test di Rosner
-def rosner_test(data, alpha=0.05, max_outliers=3):
-    outliers = []
-    data_copy = np.copy(data)
+        # Verifica colonne numeriche
+        num_cols = df.select_dtypes(include=['number']).columns
 
-    for _ in range(max_outliers):
-        mean = np.mean(data_copy)
-        std_dev = np.std(data_copy, ddof=1)
-        R = np.abs(data_copy - mean) / std_dev
-
-        n = len(data_copy)
-        t = stats.t.ppf(1 - alpha / (2 * n), n - 2)
-        R_crit = ((n - 1) / np.sqrt(n)) * np.sqrt(t**2 / (n - 2 + t**2))
-
-        max_R_index = np.argmax(R)
-        if R[max_R_index] > R_crit:
-            outliers.append(float(data_copy[max_R_index]))  # Convertiamo il valore in float normale
-            data_copy = np.delete(data_copy, max_R_index)
+        if len(num_cols) < 2:
+            st.warning("⚠️ Sono necessarie almeno due colonne numeriche.")
         else:
-            break
+            count_values = df[num_cols].count()
+            min_n = count_values.min()
+            max_n = count_values.max()
+            inequality_ratio = max_n / min_n if min_n > 0 else float('inf')
 
-    return outliers, R, R_crit
+            if inequality_ratio <= 1.5:
+                balance_comment = "Dati ben bilanciati tra le tesi"
+            elif inequality_ratio <= 3:
+                balance_comment = "Dati moderatamente sbilanciati"
+            elif inequality_ratio <= 5:
+                balance_comment = "Dati sbilanciati, attenzione all'analisi"
+            else:
+                balance_comment = "Dati fortemente sbilanciati, possibile distorsione nei test statistici"
 
-# **Applicazione dei test a ciascuna tesi**
-outlier_results = []
+            # Test di Levene
+            levene_stat, levene_p = levene(*[df[col].dropna() for col in num_cols])
+            varianze_uguali = levene_p > alpha
 
-for col in num_cols:
-    data = df[col].dropna().values
-    
-    # Test di Grubbs
-    is_outlier_grubbs, G_values, G_crit = grubbs_test(data)
-    
-    # Test di Dixon
-    is_outlier_dixon, Q_value, Q_crit = dixon_q_test(data)
-    
-    # Test di Rosner
-    outliers_rosner, R_values, R_crit = rosner_test(data)
+            # Test di Shapiro-Wilk
+            normalita_results = []
+            almeno_una_non_normale = False
 
-    outlier_results.append({
-        "Tesi": col,
-        "Grubbs (Outlier?)": "✅ Sì" if any(is_outlier_grubbs) else "❌ No",
-        "Dixon (Outlier?)": "✅ Sì" if is_outlier_dixon else "❌ No",
-        "Rosner (Outlier?)": f"{len(outliers_rosner)} rilevati" if outliers_rosner else "❌ No",
-        "Dettagli Grubbs": f"G max={max(G_values):.2f}, G crit={G_crit:.2f}",
-        "Dettagli Dixon": f"Q={Q_value:.2f}, Q crit={Q_crit:.2f}" if Q_crit else "Non applicabile",
-        "Dettagli Rosner": f"Outliers: {', '.join(map(str, outliers_rosner))}" if outliers_rosner else "Nessun outlier"
-    })
+            for col in num_cols:
+                shapiro_stat, shapiro_p = shapiro(df[col].dropna())
+                normale = shapiro_p > alpha
+                normalita_results.append([
+                    col, f"{shapiro_stat:.4f}", f"{shapiro_p:.4f}", "✅ Sì" if normale else "❌ No"
+                ])
+                if not normale:
+                    almeno_una_non_normale = True
 
-# **Visualizzazione risultati**
-results_df = pd.DataFrame(outlier_results)
-st.subheader("📊 **Risultati dei Test di Outlier**")
-st.dataframe(results_df, width=900)
+            # Risultati riepilogativi
+            results_df = pd.DataFrame({
+                "Parametro": [
+                    "Numero Min. Osservazioni",
+                    "Numero Max. Osservazioni",
+                    "Rapporto Max/Min",
+                    "Statistiche Levene",
+                    "p-value Levene",
+                    "Varianze Uguali",
+                    "Test di normalità: Shapiro-Wilk",
+                    "Almeno una distribuzione NON normale"
+                ],
+                "Valore": [
+                    min_n,
+                    max_n,
+                    f"{inequality_ratio:.2f}",
+                    f"{levene_stat:.4f}",
+                    f"{levene_p:.4f}",
+                    "✅ Sì" if varianze_uguali else "❌ No",
+                    "Eseguito su ogni tesi",
+                    "❌ Sì" if almeno_una_non_normale else "✅ No"
+                ],
+                "Commento": [
+                    "Minimo numero di osservazioni tra le tesi",
+                    "Massimo numero di osservazioni tra le tesi",
+                    balance_comment,
+                    "Valore della statistica di Levene per l'uguaglianza delle varianze",
+                    "Se p ≤ α, le varianze sono significativamente diverse",
+                    "Se 'Sì', le varianze possono essere considerate uguali",
+                    "Verifica se ogni tesi segue una distribuzione normale",
+                    "Se 'Sì', almeno una tesi non segue una distribuzione normale"
+                ]
+            })
 
-# **Spiegazione dei test**
-st.markdown("""
-### 📌 **Descrizione dei test utilizzati**
-✔ **Test di Grubbs**: Identifica un singolo outlier nei dati normalmente distribuiti. Utilizzato in contesti normativi come **ASTM E178** e **ISO 5725**.  
-✔ **Test di Dixon (Q-test)**: Adatto per dataset **piccoli**. Raccomandato dall'**IUPAC** per la validazione di metodi chimici.  
-✔ **Test di Rosner**: Permette di identificare **più outlier contemporaneamente**. Applicato nei laboratori chimici per analisi robuste.  
-""")
+            normalita_df = pd.DataFrame(
+                normalita_results,
+                columns=["Tesi", "Statistica Shapiro-Wilk", "p-value", "Distribuzione Normale"]
+            )
 
-# **Salviamo i risultati per la prossima pagina**
-st.session_state["outlier_results"] = results_df
+            # ✅ Salvataggio in session_state per uso nelle altre pagine
+            st.session_state["results_df"] = results_df
+            st.session_state["normalita_df"] = normalita_df
+            st.session_state["num_cols"] = num_cols
+            st.session_state["df"] = df.copy()
 
-# **Pulsante per passare alla fase successiva (Applicazione Test)**
-st.markdown("""
-    <a href="/applicazione_test" target="_blank">
-        <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
-            🚀 Passa all'Applicazione del Test Statistico
-        </button>
-    </a>
-""", unsafe_allow_html=True)
+# Visualizza i risultati se presenti
+if st.session_state["results_df"] is not None:
+    st.subheader("📊 **Risultati dell'Analisi Preliminare**")
+    st.dataframe(st.session_state["results_df"], width=750)
+
+    if st.session_state["normalita_df"] is not None:
+        st.subheader("📊 **Dettaglio del Test di Normalità (Shapiro-Wilk)**")
+        st.dataframe(st.session_state["normalita_df"], width=750)
+
+    # Pulsante per passare alla pagina "Individuazione Outlier"
+    st.markdown("""
+        <a href="/individuazione_outlier" target="_blank">
+            <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
+                🚀 Passa all'Individuazione degli Outlier
+            </button>
+        </a>
+    """, unsafe_allow_html=True)
+
+    # Pulsante per passare alla pagina "Applicazione Test"
+    st.markdown("""
+        <a href="/applicazione_test" target="_blank">
+            <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
+                🚀 Esegui il test statistico appropriato
+            </button>
+        </a>
+    """, unsafe_allow_html=True)
