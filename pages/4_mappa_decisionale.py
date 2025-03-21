@@ -88,7 +88,7 @@ else:
         else:
             path.append("t_test")
 
-# 🔹 **Usiamo il layout ad albero (dall'alto verso il basso)**
+# 🔹 **Usiamo il layout gerarchico senza `pygraphviz`**
 pos = nx.spring_layout(G, seed=42, k=2.5, center=(0, 0))  # 🔥 k=2.5 aumenta la distanza tra i nodi
 
 # 🎨 **Disegna il grafo**
@@ -98,12 +98,12 @@ plt.figure(figsize=(10, 12))  # 🔄 Layout verticale più alto
 nx.draw(G, pos, with_labels=False, node_color="lightgray", edge_color="gray",
         node_size=2500, alpha=0.7)
 
-# **Evidenzia il percorso selezionato in BLU**
+# **Evidenzia il percorso selezionato in BLU con frecce più grandi**
 highlight_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
 highlight_nodes = path
 
 nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue", node_size=3000)
-nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=2.5)
+nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=3.5, arrows=True, arrowsize=20)
 
 # **Posizionamento delle etichette ottimizzato**
 label_pos = {key: (x, y - 0.05) for key, (x, y) in pos.items()}  # 🔄 Abbassiamo il testo per evitare sovrapposizioni
