@@ -7,28 +7,27 @@ st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezion
 # Creazione del grafo diretto
 G = nx.DiGraph()
 
-# Etichette multilivello
+# Definizione dei nodi
 nodes = {
     "xlsx": "📂 File\n.xlsx\ncaricato",
     "num_tesi": "🔍 Numero\ndelle tesi",
     "tesi_2": "📊 2\ntesi",
     "tesi_gt2": "📊 >2\ntesi",
 
-    "var_2_eq": "✅ Varianze\nstatisticamente\nuguali",
-    "var_2_diff": "❌ Varianze\nstatisticamente\ndiverse",
-    "var_gt2_eq": "✅ Varianze\nstatisticamente\nuguali",
-    "var_gt2_diff": "❌ Varianze\nstatisticamente\ndiverse",
+    "var_2_eq": "✅ Varianze\nuguali",
+    "var_2_diff": "❌ Varianze\ndiverse",
+    "var_gt2_eq": "✅ Varianze\nuguali",
+    "var_gt2_diff": "❌ Varianze\ndiverse",
 
     "norm_2_eq_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_2_eq_no": "❌ Almeno una\ndistribuzione\nnon normale",
+    "norm_2_eq_no": "❌ Almeno una\nnon normale",
     "norm_2_diff_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_2_diff_no": "❌ Almeno una\ndistribuzione\nnon normale",
+    "norm_2_diff_no": "❌ Almeno una\nnon normale",
     "norm_gt2_eq_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_gt2_eq_no": "❌ Almeno una\ndistribuzione\nnon normale",
+    "norm_gt2_eq_no": "❌ Almeno una\nnon normale",
     "norm_gt2_diff_yes": "✅ Tutte le\ndistribuzioni\nnormali",
-    "norm_gt2_diff_no": "❌ Almeno una\ndistribuzione\nnon normale",
+    "norm_gt2_diff_no": "❌ Almeno una\nnon normale",
 
-    # Dicotomie bilanciamento
     "bilanciamento": "⚖️ Bilanciamento\ndelle tesi",
     "bilanciate": "✅ Tesi\nbilanciate",
     "sbilanciate": "❌ Tesi\nsbilanciate",
@@ -37,19 +36,14 @@ nodes = {
     "bilanciate_gt2": "✅ Tesi\nbilanciate",
     "sbilanciate_gt2": "❌ Tesi\nsbilanciate",
 
-    # Nuovi nodi intermedi per separare i test finali
-    "anova_intermedio": "📊 ANOVA\nDecisione Finale",
-    "kruskal_intermedio": "📊 Kruskal-Wallis\nDecisione Finale",
-    "welch_intermedio": "📊 Welch ANOVA\nDecisione Finale",
-
-    # Nodi-foglia (test finali)
+    # Nodi di decisione finale
+    "anova_tukey": "🧪 ANOVA\n+ Tukey HSD",
+    "kruskal": "🧪 Kruskal-Wallis\n(+ Dunn, Bonferroni)",
+    "welch_games": "🧪 Welch ANOVA\n+ Games-Howell",
     "t_test": "🧪 T-test",
     "welch_ttest": "🧪 T-test\ndi Welch",
     "mann_whitney": "🧪 Mann-Whitney\nU test",
-    "kruskal": "🧪 Kruskal-Wallis\n(+ Dunn, Bonferroni)",
-    "games": "🧪 Games-Howell\ntest",
-    "welch_games": "🧪 Welch ANOVA\n+ Games-Howell",
-    "anova_tukey": "🧪 ANOVA\n+ Tukey HSD"
+    "games": "🧪 Games-Howell\ntest"
 }
 
 G.add_nodes_from(nodes.keys())
@@ -74,42 +68,67 @@ edges = [
     ("var_gt2_diff", "norm_gt2_diff_yes"),
     ("var_gt2_diff", "norm_gt2_diff_no"),
 
-    # Rami Mann-Whitney
-    ("norm_2_diff_no", "mann_whitney"),
     ("norm_2_eq_no", "mann_whitney"),
-
-    # Welch T-test
+    ("norm_2_diff_no", "mann_whitney"),
     ("norm_2_diff_yes", "welch_ttest"),
 
-    # Bilanciamento per 2 tesi
     ("norm_2_eq_yes", "bilanciamento"),
     ("bilanciamento", "bilanciate"),
     ("bilanciamento", "sbilanciate"),
     ("bilanciate", "t_test"),
     ("sbilanciate", "welch_ttest"),
 
-    # Bilanciamento per >2 tesi
     ("norm_gt2_eq_yes", "bilanciamento_gt2"),
     ("bilanciamento_gt2", "bilanciate_gt2"),
     ("bilanciamento_gt2", "sbilanciate_gt2"),
-    ("bilanciate_gt2", "anova_intermedio"),
-    ("sbilanciate_gt2", "welch_intermedio"),
+    ("bilanciate_gt2", "anova_tukey"),
+    ("sbilanciate_gt2", "welch_games"),
 
-    # Nuovo livello di separazione dei test finali
-    ("norm_gt2_eq_no", "kruskal_intermedio"),
-    ("norm_gt2_diff_no", "kruskal_intermedio"),
-    ("norm_gt2_diff_yes", "welch_intermedio"),
-
-    # Test finali
-    ("anova_intermedio", "anova_tukey"),
-    ("kruskal_intermedio", "kruskal"),
-    ("welch_intermedio", "welch_games"),
+    ("norm_gt2_eq_no", "kruskal"),
+    ("norm_gt2_diff_no", "kruskal"),
+    ("norm_gt2_diff_yes", "welch_games"),
 ]
 
 G.add_edges_from(edges)
 
-# 📌 Posizionamento dei nodi (corretta posizione per tutti)
-pos = {node: (0, 10 - i) for i, node in enumerate(nodes.keys())}
+# 📌 Posizionamento dei nodi per la visualizzazione corretta
+pos = {
+    "xlsx": (0, 8),
+    "num_tesi": (0, 7),
+    "tesi_2": (-2, 6),
+    "tesi_gt2": (2, 6),
+
+    "var_2_eq": (-3, 5),
+    "var_2_diff": (-1, 5),
+    "var_gt2_eq": (1, 5),
+    "var_gt2_diff": (3, 5),
+
+    "norm_2_eq_yes": (-3.5, 4),
+    "norm_2_eq_no": (-2.5, 4),
+    "norm_2_diff_yes": (-1.5, 4),
+    "norm_2_diff_no": (-0.5, 4),
+    "norm_gt2_eq_yes": (0.5, 4),
+    "norm_gt2_eq_no": (1.5, 4),
+    "norm_gt2_diff_yes": (2.5, 4),
+    "norm_gt2_diff_no": (3.5, 4),
+
+    "bilanciamento": (-3.5, 3),
+    "bilanciamento_gt2": (0.5, 3),
+
+    "bilanciate": (-4, 2),
+    "sbilanciate": (-3, 2),
+    "bilanciate_gt2": (0, 2),
+    "sbilanciate_gt2": (1, 2),
+
+    # Test finali
+    "anova_tukey": (-1, 1),
+    "kruskal": (1, 1),
+    "welch_games": (3, 1),
+    "t_test": (-4, 1),
+    "welch_ttest": (-3, 1),
+    "mann_whitney": (-2.5, 1),
+    "games": (2, 1)
+}
 
 # Disegno del grafo
 plt.figure(figsize=(16, 12))
