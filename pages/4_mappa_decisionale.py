@@ -88,11 +88,11 @@ else:
         else:
             path.append("t_test")
 
-# 🔹 **Usiamo un layout più spazioso**
-pos = nx.spring_layout(G, seed=42, k=2.0)  # 🔥 k=2.0 aumenta la distanza tra i nodi
+# 🔹 **Imposta il layout verticale (dall'alto verso il basso)**
+pos = nx.multipartite_layout(G, subset_key=lambda node: list(nodes.keys()).index(node))
 
 # 🎨 **Disegna il grafo**
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(10, 12))  # 🔄 Dimensione verticale aumentata
 
 # **Disegna tutti i nodi in grigio chiaro per mostrare l'intero percorso**
 nx.draw(G, pos, with_labels=False, node_color="lightgray", edge_color="gray",
@@ -105,8 +105,8 @@ highlight_nodes = path
 nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue", node_size=3000)
 nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=2.5)
 
-# **Posizionamento ottimizzato delle etichette**
-label_pos = {key: (x, y + 0.05) for key, (x, y) in pos.items()}  # 🔄 Spostiamo leggermente il testo verso l'alto
+# **Posizionamento delle etichette ottimizzato**
+label_pos = {key: (x, y - 0.05) for key, (x, y) in pos.items()}  # 🔄 Spostiamo il testo leggermente più in basso
 nx.draw_networkx_labels(G, label_pos, labels=nodes, font_size=10, font_weight="bold")
 
 st.pyplot(plt)
