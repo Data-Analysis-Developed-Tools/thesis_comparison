@@ -26,29 +26,12 @@ nodes = {
     "norm_gt2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
     "norm_gt2_eq_no": "❌ Almeno una\nNon Normale",
     "norm_gt2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
-    "norm_gt2_diff_no": "❌ Almeno una\nNon Normale",
-
-    "bilanciamento": "⚖️ Bilanciamento\nDelle Tesi",
-    "bilanciate": "✅ Tesi\nBilanciate",
-    "sbilanciate": "❌ Tesi\nSbilanciate",
-
-    "bilanciamento_gt2": "⚖️ Bilanciamento\nDelle Tesi",
-    "bilanciate_gt2": "✅ Tesi\nBilanciate",
-    "sbilanciate_gt2": "❌ Tesi\nSbilanciate",
-
-    # Nodi di decisione finale
-    "anova_tukey": "🧪 ANOVA\n+ Tukey HSD",
-    "kruskal": "🧪 Kruskal-Wallis\n+ Dunn Bonferroni",
-    "welch_games": "🧪 Welch ANOVA\n+ Games-Howell",
-    "t_test": "🧪 T-test",
-    "welch_ttest": "🧪 T-test di Welch",
-    "mann_whitney": "🧪 Mann-Whitney U test",
-    "games": "🧪 Games-Howell test"
+    "norm_gt2_diff_no": "❌ Almeno una\nNon Normale"
 }
 
 G.add_nodes_from(nodes.keys())
 
-# Connessioni tra i nodi
+# Connessioni tra i nodi fino alle scelte di normalità (ora senza connessioni inferiori)
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"),
@@ -66,32 +49,12 @@ edges = [
     ("var_gt2_eq", "norm_gt2_eq_yes"),
     ("var_gt2_eq", "norm_gt2_eq_no"),
     ("var_gt2_diff", "norm_gt2_diff_yes"),
-    ("var_gt2_diff", "norm_gt2_diff_no"),
-
-    ("norm_2_eq_no", "mann_whitney"),
-    ("norm_2_diff_no", "mann_whitney"),
-    ("norm_2_diff_yes", "welch_ttest"),
-
-    ("norm_2_eq_yes", "bilanciamento"),
-    ("bilanciamento", "bilanciate"),
-    ("bilanciamento", "sbilanciate"),
-    ("bilanciate", "t_test"),
-    ("sbilanciate", "welch_ttest"),
-
-    ("norm_gt2_eq_yes", "bilanciamento_gt2"),
-    ("bilanciamento_gt2", "bilanciate_gt2"),
-    ("bilanciamento_gt2", "sbilanciate_gt2"),
-    ("bilanciate_gt2", "anova_tukey"),
-    ("sbilanciate_gt2", "welch_games"),
-
-    ("norm_gt2_eq_no", "kruskal"),
-    ("norm_gt2_diff_no", "kruskal"),
-    ("norm_gt2_diff_yes", "welch_games"),
+    ("var_gt2_diff", "norm_gt2_diff_no")
 ]
 
 G.add_edges_from(edges)
 
-# 📌 Posizionamento dei nodi (versione precedente ripristinata)
+# 📌 Posizionamento dei nodi (mantenendo la struttura senza connessioni inferiori)
 pos = {
     "xlsx": (0, 9),
     "num_tesi": (0, 8),
@@ -110,28 +73,11 @@ pos = {
     "norm_gt2_eq_yes": (0.5, 5),
     "norm_gt2_eq_no": (1.5, 5),
     "norm_gt2_diff_yes": (2.5, 5),
-    "norm_gt2_diff_no": (3.5, 5),
-
-    "bilanciamento": (-3.5, 4),
-    "bilanciamento_gt2": (0.5, 4),
-
-    "bilanciate": (-4, 3),
-    "sbilanciate": (-3, 3),
-    "bilanciate_gt2": (0, 3),
-    "sbilanciate_gt2": (1, 3),
-
-    # Test finali (ripristinati con la versione precedente)
-    "anova_tukey": (-3, 2),
-    "kruskal": (-1, 2),
-    "welch_games": (1, 2),
-    "t_test": (-5, 2),
-    "welch_ttest": (-4, 2),
-    "mann_whitney": (-2, 2),
-    "games": (3, 2)
+    "norm_gt2_diff_no": (3.5, 5)
 }
 
-# Disegno del grafo
-plt.figure(figsize=(16, 12))
+# Disegno del grafo senza connessioni inferiori
+plt.figure(figsize=(16, 10))
 nx.draw_networkx_nodes(G, pos, node_color="lightgray", node_size=3000)
 nx.draw_networkx_edges(G, pos, arrows=True, arrowsize=30, width=2, edge_color="gray")
 nx.draw_networkx_labels(G, pos, labels=nodes, font_size=9, font_weight="bold")
