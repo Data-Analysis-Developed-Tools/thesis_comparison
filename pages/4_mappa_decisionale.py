@@ -24,11 +24,14 @@ G = nx.DiGraph()
 # 🔹 Definizione dei nodi
 nodes = {
     "start": "📂 File .xlsx caricato",
-    "num_tesi": f"📊 Numero tesi: {num_tesi}",
+    "num_tesi": f"📊 Numero di tesi: {num_tesi}",
+    "test_tesi": "🔍 2 tesi o più di 2 tesi?",
     "levene": "📊 Confronto varianze (Levene)",
     "uguali": "✅ Varianze uguali",
     "diverse": "❌ Varianze diverse",
     "shapiro": "📉 Test di Normalità (Shapiro-Wilk)",
+    "normali": "✅ Tutte le distribuzioni normali",
+    "non_normali": "❌ Almeno una distribuzione non normale",
     "bilanciamento": "⚖️ Controllo bilanciamento",
     "kruskal": "📊 Test selezionato: Kruskal-Wallis",
     "mann_whitney": "📊 Test selezionato: Mann-Whitney U",
@@ -45,12 +48,16 @@ G.add_nodes_from(nodes.keys())
 # 🔹 Definizione delle connessioni
 edges = [
     ("start", "num_tesi"),
-    ("num_tesi", "levene"),
+    ("num_tesi", "test_tesi"),
+    ("test_tesi", "levene"),
     ("levene", "uguali"),
     ("levene", "diverse"),
     ("uguali", "shapiro"),
     ("diverse", "shapiro"),
-    ("shapiro", "bilanciamento"),
+    ("shapiro", "normali"),
+    ("shapiro", "non_normali"),
+    ("normali", "bilanciamento"),
+    ("non_normali", "bilanciamento"),
     ("bilanciamento", "kruskal"),
     ("bilanciamento", "mann_whitney"),
     ("bilanciamento", "welch_anova"),
@@ -62,13 +69,24 @@ edges = [
 G.add_edges_from(edges)
 
 # 🔹 Determina il percorso attivo basato sui dati
-path = ["start", "num_tesi", "levene"]
+path = ["start", "num_tesi", "test_tesi"]
+if num_tesi == 2:
+    path.append("levene")
+else:
+    path.append("levene")
+
 if varianze_uguali:
     path.append("uguali")
 else:
     path.append("diverse")
 
 path.append("shapiro")
+
+if almeno_una_non_normale:
+    path.append("non_normali")
+else:
+    path.append("normali")
+
 path.append("bilanciamento")
 
 if almeno_una_non_normale:
