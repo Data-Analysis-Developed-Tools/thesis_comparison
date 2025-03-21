@@ -88,8 +88,8 @@ else:
         else:
             path.append("t_test")
 
-# 🔹 Imposta il layout in stile **flowchart verticale**
-pos = nx.nx_agraph.graphviz_layout(G, prog="dot")
+# 🔹 Imposta il layout **senza `pygraphviz`**
+pos = nx.shell_layout(G)
 
 # 🎨 **Disegna il grafo**
 plt.figure(figsize=(12, 8))
