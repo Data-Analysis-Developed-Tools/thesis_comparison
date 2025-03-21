@@ -29,9 +29,8 @@ nodes = {
     "norm_gt2_diff_no": "❌ Almeno una\ndistribuzione\nnon normale",
 
     # Nodi-foglia (test finali)
-    "mw_1": "🧪 Mann-Whitney\nU test",
-    "mw_2": "🧪 Mann-Whitney\nU test",
-    "mw_3": "🧪 Mann-Whitney\nU test",
+    "mann_whitney": "🧪 Mann-Whitney\nU test",
+    "welch_ttest": "🧪 T-test\ndi Welch",
     "kruskal": "🧪 Kruskal-Wallis\n(+ Bonferroni)",
     "games": "🧪 Games-Howell\ntest",
     "welch_games": "🧪 Welch ANOVA\n+ Games-Howell"
@@ -39,15 +38,17 @@ nodes = {
 
 G.add_nodes_from(nodes.keys())
 
-# Connessioni principali
+# Connessioni tra i nodi
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"),
     ("num_tesi", "tesi_gt2"),
+
     ("tesi_2", "var_2_eq"),
     ("tesi_2", "var_2_diff"),
     ("tesi_gt2", "var_gt2_eq"),
     ("tesi_gt2", "var_gt2_diff"),
+
     ("var_2_eq", "norm_2_eq_yes"),
     ("var_2_eq", "norm_2_eq_no"),
     ("var_2_diff", "norm_2_diff_yes"),
@@ -57,10 +58,14 @@ edges = [
     ("var_gt2_diff", "norm_gt2_diff_yes"),
     ("var_gt2_diff", "norm_gt2_diff_no"),
 
-    # Test finali (nodi foglia)
-    ("norm_2_diff_no", "mw_1"),
-    ("norm_2_diff_yes", "mw_2"),
-    ("norm_2_eq_no", "mw_3"),
+    # Rami che portano a Mann-Whitney U test
+    ("norm_2_diff_no", "mann_whitney"),
+    ("norm_2_eq_no", "mann_whitney"),
+
+    # Ramo corretto per T-test di Welch
+    ("norm_2_diff_yes", "welch_ttest"),
+
+    # Altri test finali
     ("norm_gt2_eq_no", "kruskal"),
     ("norm_gt2_diff_no", "games"),
     ("norm_2_diff_yes", "welch_games")
@@ -68,12 +73,13 @@ edges = [
 
 G.add_edges_from(edges)
 
-# Posizione manuale dei nodi (top-down)
+# Posizione dei nodi per layout verticale
 pos = {
     "xlsx": (0, 6),
     "num_tesi": (0, 5),
     "tesi_2": (-2, 4),
     "tesi_gt2": (2, 4),
+
     "var_2_eq": (-3, 3),
     "var_2_diff": (-1, 3),
     "var_gt2_eq": (1, 3),
@@ -89,12 +95,11 @@ pos = {
     "norm_gt2_diff_no": (3.5, 2),
 
     # Test finali
-    "mw_1": (-0.5, 1),
-    "mw_2": (-1.5, 1),
-    "mw_3": (-2.5, 1),
+    "mann_whitney": (-1.5, 1),
+    "welch_ttest": (-0.5, 1),
     "kruskal": (1.5, 1),
     "games": (3.5, 1),
-    "welch_games": (-1.0, 1)
+    "welch_games": (-2.5, 1)
 }
 
 # Disegno del grafo
