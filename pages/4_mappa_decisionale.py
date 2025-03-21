@@ -28,7 +28,7 @@ nodes = {
     "norm_gt2_diff_yes": "✅ Tutte le\ndistribuzioni\nnormali",
     "norm_gt2_diff_no": "❌ Almeno una\ndistribuzione\nnon normale",
 
-    # Dicotomia sul bilanciamento
+    # Dicotomie bilanciamento
     "bilanciamento": "⚖️ Bilanciamento\ndelle tesi",
     "bilanciate": "✅ Tesi\nbilanciate",
     "sbilanciate": "❌ Tesi\nsbilanciate",
@@ -37,7 +37,7 @@ nodes = {
     "bilanciate_gt2": "✅ Tesi\nbilanciate",
     "sbilanciate_gt2": "❌ Tesi\nsbilanciate",
 
-    # Nodi-foglia (test finali)
+    # Nodi-foglia
     "t_test": "🧪 T-test",
     "welch_ttest": "🧪 T-test\ndi Welch",
     "mann_whitney": "🧪 Mann-Whitney\nU test",
@@ -94,12 +94,12 @@ edges = [
     ("norm_gt2_eq_no", "kruskal"),
     ("norm_gt2_diff_no", "games"),
     ("norm_2_diff_yes", "welch_games"),
-    ("norm_gt2_diff_yes", "welch_games")  # ✅ nuova connessione
+    ("norm_gt2_diff_yes", "welch_games")
 ]
 
 G.add_edges_from(edges)
 
-# Layout verticale
+# Posizioni dei nodi (bilanciamenti allineati a y = 3)
 pos = {
     "xlsx": (0, 8),
     "num_tesi": (0, 7),
@@ -121,14 +121,14 @@ pos = {
     "norm_gt2_diff_no": (3.5, 4),
 
     "bilanciamento": (-3.5, 3),
+    "bilanciamento_gt2": (0.5, 3),
+
     "bilanciate": (-4, 2),
     "sbilanciate": (-3, 2),
-
-    "bilanciamento_gt2": (0.5, 3),
     "bilanciate_gt2": (0, 2),
     "sbilanciate_gt2": (1, 2),
 
-    # Nodi finali
+    # Test finali
     "t_test": (-4, 1),
     "welch_ttest": (-1, 1),
     "mann_whitney": (-2, 1),
