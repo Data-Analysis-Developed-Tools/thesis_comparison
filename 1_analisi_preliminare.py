@@ -1,44 +1,98 @@
 import pandas as pd
 import streamlit as st
+from scipy.stats import levene, shapiro
 
 # 🔹 Titolo della pagina
-st.markdown("<h3 style='text-align: center;'>📊 APPLICAZIONE DEL TEST STATISTICO</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>📊 ANALISI PRELIMINARE DELLE TESI</h3>", unsafe_allow_html=True)
 
-# ✅ Verifica se i dati necessari sono disponibili in session_state
-required_vars = ["num_cols", "df", "inequality_ratio"]
-missing_vars = [var for var in required_vars if var not in st.session_state]
+# Opzioni per il livello di significatività
+sig_levels = {
+    "90% (α = 0.10)": 0.10,
+    "95% (α = 0.05)": 0.05,
+    "99% (α = 0.01)": 0.01,
+    "99.9% (α = 0.001)": 0.001
+}
 
-if missing_vars:
-    st.error(f"⚠️ Dati mancanti! Torna alla sezione 'Analisi Preliminare' ed esegui l'analisi prima di procedere.\n\nMancano: {', '.join(missing_vars)}")
-    st.stop()
+# **Inizializza `st.session_state` per mantenere i risultati tra le sessioni**
+if "uploaded_file" not in st.session_state:
+    st.session_state["uploaded_file"] = None
+    st.session_state["alpha"] = 0.05
+    st.session_state["results_df"] = None
+    st.session_state["df"] = None
+    st.session_state["num_cols"] = None
+    st.session_state["inequality_ratio"] = None  # ✅ Aggiunto per correggere l'errore in applicazione_test.py
 
-# ✅ Recuperiamo i dati dal session_state
-num_cols = st.session_state["num_cols"]
-df = st.session_state["df"]
-inequality_ratio = st.session_state["inequality_ratio"]
+# Selezione del livello di significatività
+selected_level = st.selectbox(
+    "📊 Seleziona il livello di significatività prima di caricare il file:",
+    options=list(sig_levels.keys()),
+    index=1
+)
 
-# **Scelta del test statistico in base ai dati**
-st.subheader("📌 **Selezione del Test Statistico**")
+# Memorizzazione del valore scelto
+alpha = sig_levels[selected_level]
+st.session_state["alpha"] = alpha
 
-if len(num_cols) == 2:
-    st.write("🔹 **Caso: 2 tesi a confronto**")
-    if inequality_ratio > 3:
-        st.write("⚠️ Le osservazioni sono molto sbilanciate. Si consiglia il **Test di Welch**.")
-    else:
-        st.write("✅ Le osservazioni sono bilanciate. Si può utilizzare il **T-test classico**.")
+# Upload del file Excel
+uploaded_file = st.file_uploader("📂 Carica un file Excel (.xlsx)", type=["xlsx"])
 
-elif len(num_cols) > 2:
-    st.write("🔹 **Caso: Più di 2 tesi a confronto**")
-    if inequality_ratio > 3:
-        st.write("⚠️ Le osservazioni sono molto sbilanciate. Si consiglia il **Test di Welch ANOVA + Games-Howell**.")
-    else:
-        st.write("✅ Le osservazioni sono bilanciate. Si può utilizzare il **Test ANOVA + Tukey HSD**.")
+def load_data(uploaded_file):
+    try:
+        df = pd.read_excel(uploaded_file)
+        return df
+    except Exception as e:
+        st.error(f"❌ Errore nel caricamento del file: {e}")
+        return None
 
-# **Pulsante per tornare alla Home**
+if uploaded_file is not None:
+    st.session_state["uploaded_file"] = uploaded_file
+
+if st.session_state["uploaded_file"] is not None:
+    df = load_data(st.session_state["uploaded_file"])
+    if df is not None:
+        st.write("✅ **File caricato con successo!**")
+        st.dataframe(df.head())
+        st.write(f"🔬 **Livello di significatività selezionato:** {selected_level} (α = {alpha})")
+
+        num_cols = df.select_dtypes(include=['number']).columns
+
+        if len(num_cols) < 2:
+            st.warning("⚠️ Sono necessarie almeno due colonne numeriche.")
+        else:
+            count_values = df[num_cols].count()
+            min_n = count_values.min()
+            max_n = count_values.max()
+            inequality_ratio = max_n / min_n if min_n > 0 else float('inf')
+
+            if inequality_ratio <= 1.5:
+                balance_comment = "Dati ben bilanciati tra le tesi"
+            elif inequality_ratio <= 3:
+                balance_comment = "Dati moderatamente sbilanciati"
+            elif inequality_ratio <= 5:
+                balance_comment = "Dati sbilanciati, attenzione all'analisi"
+            else:
+                balance_comment = "Dati fortemente sbilanciati, possibile distorsione nei test statistici"
+
+            levene_stat, levene_p = levene(*[df[col].dropna() for col in num_cols])
+            varianze_uguali = levene_p > alpha
+
+            st.session_state["num_cols"] = num_cols
+            st.session_state["df"] = df.copy()
+            st.session_state["inequality_ratio"] = inequality_ratio  # ✅ Ora viene salvato correttamente!
+
+# Pulsanti di navigazione
 st.markdown("""
-    <a href="/analisi_preliminare" target="_blank">
+    <a href="/individuazione_outlier" target="_blank">
         <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
-            🔄 Torna all'Analisi Preliminare
+            🚀 Passa all'Individuazione degli Outlier
+        </button>
+    </a>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+    <a href="/applicazione_test" target="_blank">
+        <button style="background-color:#4CAF50;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;">
+            🚀 Esegui il test statistico appropriato
         </button>
     </a>
 """, unsafe_allow_html=True)
