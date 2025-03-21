@@ -1,6 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import networkx as nx
 
 st.markdown("<h3 style='text-align: center;'>📊 MAPPA DECISIONALE DEL TEST STATISTICO</h3>", unsafe_allow_html=True)
 
@@ -18,70 +18,94 @@ inequality_ratio = st.session_state["inequality_ratio"]
 varianze_uguali = st.session_state["varianze_uguali"]
 almeno_una_non_normale = st.session_state["almeno_una_non_normale"]
 
+# 🔹 Creazione del grafo
+G = nx.DiGraph()
+
+# 🔹 Definizione dei nodi
+nodes = {
+    "start": "📂 File .xlsx caricato",
+    "num_tesi": f"📊 Numero tesi: {num_tesi}",
+    "levene": "📊 Confronto varianze (Levene)",
+    "uguali": "✅ Varianze uguali",
+    "diverse": "❌ Varianze diverse",
+    "shapiro": "📉 Test di Normalità (Shapiro-Wilk)",
+    "bilanciamento": "⚖️ Controllo bilanciamento",
+    "kruskal": "📊 Test selezionato: Kruskal-Wallis",
+    "mann_whitney": "📊 Test selezionato: Mann-Whitney U",
+    "welch_anova": "📊 Test selezionato: Welch ANOVA",
+    "tukey": "📊 Test selezionato: ANOVA + Tukey HSD",
+    "t_test": "📊 Test selezionato: T-test classico",
+    "t_test_welch": "📊 Test selezionato: T-test di Welch",
+    "games_howell": "📊 Test selezionato: Welch ANOVA + Games-Howell"
+}
+
+# Aggiunta nodi al grafo
+G.add_nodes_from(nodes.keys())
+
+# 🔹 Definizione delle connessioni
+edges = [
+    ("start", "num_tesi"),
+    ("num_tesi", "levene"),
+    ("levene", "uguali"),
+    ("levene", "diverse"),
+    ("uguali", "shapiro"),
+    ("diverse", "shapiro"),
+    ("shapiro", "bilanciamento"),
+    ("bilanciamento", "kruskal"),
+    ("bilanciamento", "mann_whitney"),
+    ("bilanciamento", "welch_anova"),
+    ("bilanciamento", "tukey"),
+    ("bilanciamento", "t_test"),
+    ("bilanciamento", "t_test_welch"),
+    ("bilanciamento", "games_howell")
+]
+G.add_edges_from(edges)
+
 # 🔹 Determina il percorso attivo basato sui dati
-decisioni = []
-decisioni.append("📂 File .xlsx caricato")
-decisioni.append(f"📊 Numero tesi: {num_tesi}")
-
-if num_tesi == 2:
-    decisioni.append("📊 Confronto varianze (Levene)")
-    if varianze_uguali:
-        decisioni.append("✅ Varianze uguali")
-    else:
-        decisioni.append("❌ Varianze diverse")
-
-    decisioni.append("📉 Test di Normalità (Shapiro-Wilk)")
-    if almeno_una_non_normale:
-        decisioni.append("⚖️ Controllo bilanciamento tra numerosità")
-        if inequality_ratio > 3:
-            decisioni.append("📊 **Test selezionato: Mann-Whitney U**")
-        else:
-            decisioni.append("📊 **Test selezionato: T-test di Welch**")
-    else:
-        decisioni.append("⚖️ Controllo bilanciamento tra numerosità")
-        if inequality_ratio > 3:
-            decisioni.append("📊 **Test selezionato: T-test di Welch**")
-        else:
-            decisioni.append("📊 **Test selezionato: T-test classico**")
+path = ["start", "num_tesi", "levene"]
+if varianze_uguali:
+    path.append("uguali")
 else:
-    decisioni.append("📊 Confronto varianze (Levene)")
-    if varianze_uguali:
-        decisioni.append("✅ Varianze uguali")
-    else:
-        decisioni.append("❌ Varianze diverse")
+    path.append("diverse")
 
-    decisioni.append("📉 Test di Normalità (Shapiro-Wilk)")
-    if almeno_una_non_normale:
-        decisioni.append("📊 **Test selezionato: Kruskal-Wallis**")
+path.append("shapiro")
+path.append("bilanciamento")
+
+if almeno_una_non_normale:
+    if num_tesi > 2:
+        path.append("kruskal")
     else:
-        decisioni.append("⚖️ Controllo bilanciamento tra numerosità")
-        if inequality_ratio > 3:
-            decisioni.append("📊 **Test selezionato: Welch ANOVA + Games-Howell**")
+        path.append("mann_whitney")
+else:
+    if inequality_ratio > 3:
+        if num_tesi > 2:
+            path.append("games_howell")
         else:
-            decisioni.append("📊 **Test selezionato: ANOVA + Tukey HSD**")
+            path.append("t_test_welch")
+    else:
+        if num_tesi > 2:
+            path.append("tukey")
+        else:
+            path.append("t_test")
 
-# 🎨 **Creazione del grafico**
-fig, ax = plt.subplots(figsize=(10, 7))
-ax.set_xlim(0, 10)
-ax.set_ylim(0, len(decisioni) + 1)
-ax.axis("off")
+# 🔹 Imposta il layout in stile **flowchart verticale**
+pos = nx.nx_agraph.graphviz_layout(G, prog="dot")
 
-# 🔹 **Disegna i rettangoli e le connessioni**
-for i, step in enumerate(decisioni):
-    # Colore differenziato per le decisioni
-    color = "lightblue" if "Test selezionato" in step else "lightgray"
-    ax.add_patch(patches.FancyBboxPatch((3, len(decisioni) - i), 4, 0.8, 
-                                        boxstyle="round,pad=0.3", 
-                                        edgecolor="black", facecolor=color))
-    ax.text(5, len(decisioni) - i + 0.4, step, ha="center", va="center", fontsize=10, weight="bold")
+# 🎨 **Disegna il grafo**
+plt.figure(figsize=(12, 8))
 
-    # Connessioni
-    if i > 0:
-        ax.annotate("", xy=(5, len(decisioni) - i + 0.8), xytext=(5, len(decisioni) - i + 1.2),
-                    arrowprops=dict(arrowstyle="->", lw=2, color="black"))
+# **Disegna tutti i nodi in grigio chiaro per mostrare l'intero percorso**
+nx.draw(G, pos, with_labels=True, labels=nodes, node_color="lightgray", edge_color="gray",
+        node_size=2500, font_size=9, font_weight="bold", alpha=0.7)
 
-# 🎯 **Mostra il grafico**
-st.pyplot(fig)
+# **Evidenzia il percorso selezionato in BLU**
+highlight_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
+highlight_nodes = path
+
+nx.draw_networkx_nodes(G, pos, nodelist=highlight_nodes, node_color="lightblue", node_size=3000)
+nx.draw_networkx_edges(G, pos, edgelist=highlight_edges, edge_color="blue", width=2.5)
+
+st.pyplot(plt)
 
 # 🔹 **Messaggio riassuntivo**
 st.markdown(f"""
@@ -92,5 +116,5 @@ st.markdown(f"""
 - ⚖️ **Rapporto Max/Min:** {inequality_ratio:.2f}
 
 ### 📌 **Test statistico selezionato:**
-📝 **{decisioni[-1]}**
+📝 **{nodes[path[-1]]}**
 """)
