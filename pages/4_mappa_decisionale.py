@@ -4,82 +4,61 @@ import matplotlib.pyplot as plt
 
 st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezione del Test Statistico</h3>", unsafe_allow_html=True)
 
-# Creazione del grafo diretto
+# Creazione del grafo
 G = nx.DiGraph()
 
-# Definizione dei nodi con etichette descrittive
-nodes = {
-    "xlsx": "📂 File .xlsx\nCaricato",
-    "num_tesi": "🔍 Numero\ndelle tesi",
-    "tesi_2": "📊 2 Tesi",
-    "tesi_gt2": "📊 >2 Tesi",
+# Nodi principali
+G.add_node("xlsx", label="📂 File .xlsx\nCaricato")
+G.add_node("num_tesi", label="🔍 Numero\ndelle tesi")
+G.add_node("tesi_2", label="📊 2 Tesi")
+G.add_node("tesi_gt2", label="📊 >2 Tesi")
 
-    "var_2_eq": "✅ Varianze\nUguali",
-    "var_2_diff": "❌ Varianze\nDiverse",
-    "var_gt2_eq": "✅ Varianze\nUguali",
-    "var_gt2_diff": "❌ Varianze\nDiverse",
+# Nodo per varianze
+G.add_node("var_2_eq", label="✅ Varianze\nUguali")
+G.add_node("var_2_diff", label="❌ Varianze\nDiverse")
 
-    "norm_2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
-    "norm_2_eq_no": "❌ Almeno una\nNon Normale",
-    "norm_2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
-    "norm_2_diff_no": "❌ Almeno una\nNon Normale",
-    "norm_gt2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
-    "norm_gt2_eq_no": "❌ Almeno una\nNon Normale",
-    "norm_gt2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
-    "norm_gt2_diff_no": "❌ Almeno una\nNon Normale"
-}
+# Nodi per normalità
+G.add_node("norm_2_eq_yes", label="✅ Tutte le\nDistribuzioni Normali")
+G.add_node("norm_2_eq_no", label="❌ Almeno una\nNon Normale")
 
-G.add_nodes_from(nodes.keys())
+# Nodo-foglia richiesto
+G.add_node("mann_whitney", label="🧪 Mann-Whitney U test")
 
-# Connessioni tra i nodi fino alle scelte di normalità (ora senza connessioni inferiori)
+# Connessioni aggiornate
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"),
     ("num_tesi", "tesi_gt2"),
-
     ("tesi_2", "var_2_eq"),
     ("tesi_2", "var_2_diff"),
-    ("tesi_gt2", "var_gt2_eq"),
-    ("tesi_gt2", "var_gt2_diff"),
-
     ("var_2_eq", "norm_2_eq_yes"),
     ("var_2_eq", "norm_2_eq_no"),
-    ("var_2_diff", "norm_2_diff_yes"),
-    ("var_2_diff", "norm_2_diff_no"),
-    ("var_gt2_eq", "norm_gt2_eq_yes"),
-    ("var_gt2_eq", "norm_gt2_eq_no"),
-    ("var_gt2_diff", "norm_gt2_diff_yes"),
-    ("var_gt2_diff", "norm_gt2_diff_no")
+    ("norm_2_eq_no", "mann_whitney")  # ← connessione aggiornata
 ]
 
 G.add_edges_from(edges)
 
-# 📌 Posizionamento dei nodi (mantenendo la struttura senza connessioni inferiori)
+# Posizionamento nodi per layout dall'alto verso il basso
 pos = {
-    "xlsx": (0, 9),
-    "num_tesi": (0, 8),
-    "tesi_2": (-2, 7),
-    "tesi_gt2": (2, 7),
-
-    "var_2_eq": (-3, 6),
-    "var_2_diff": (-1, 6),
-    "var_gt2_eq": (1, 6),
-    "var_gt2_diff": (3, 6),
-
-    "norm_2_eq_yes": (-3.5, 5),
-    "norm_2_eq_no": (-2.5, 5),
-    "norm_2_diff_yes": (-1.5, 5),
-    "norm_2_diff_no": (-0.5, 5),
-    "norm_gt2_eq_yes": (0.5, 5),
-    "norm_gt2_eq_no": (1.5, 5),
-    "norm_gt2_diff_yes": (2.5, 5),
-    "norm_gt2_diff_no": (3.5, 5)
+    "xlsx": (0, 5),
+    "num_tesi": (0, 4),
+    "tesi_2": (-1, 3),
+    "tesi_gt2": (1, 3),
+    "var_2_eq": (-1.5, 2),
+    "var_2_diff": (-0.5, 2),
+    "norm_2_eq_yes": (-2, 1),
+    "norm_2_eq_no": (-1, 1),
+    "mann_whitney": (-1, 0)
 }
 
-# Disegno del grafo senza connessioni inferiori
-plt.figure(figsize=(16, 10))
-nx.draw_networkx_nodes(G, pos, node_color="lightgray", node_size=3000)
-nx.draw_networkx_edges(G, pos, arrows=True, arrowsize=30, width=2, edge_color="gray")
-nx.draw_networkx_labels(G, pos, labels=nodes, font_size=9, font_weight="bold")
+# Etichette visive
+labels = nx.get_node_attributes(G, 'label')
 
+# Disegno del grafo
+plt.figure(figsize=(10, 6))
+nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3000, arrows=True, edge_color="gray")
+nx.draw_networkx_labels(G, pos, labels=labels, font_size=8, font_weight="bold")
+plt.title("📌 Nodo-Foglia aggiornato: Mann-Whitney U test", fontsize=12)
+plt.axis('off')
+plt.tight_layout()
 st.pyplot(plt)
