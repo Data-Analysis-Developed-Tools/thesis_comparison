@@ -7,24 +7,18 @@ st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezion
 # Creazione del grafo
 G = nx.DiGraph()
 
-# Nodi principali
+# Nodi
 G.add_node("xlsx", label="📂 File .xlsx\nCaricato")
 G.add_node("num_tesi", label="🔍 Numero\ndelle tesi")
 G.add_node("tesi_2", label="📊 2 Tesi")
 G.add_node("tesi_gt2", label="📊 >2 Tesi")
-
-# Nodo per varianze
 G.add_node("var_2_eq", label="✅ Varianze\nUguali")
 G.add_node("var_2_diff", label="❌ Varianze\nDiverse")
-
-# Nodi per normalità
 G.add_node("norm_2_eq_yes", label="✅ Tutte le\nDistribuzioni Normali")
 G.add_node("norm_2_eq_no", label="❌ Almeno una\nNon Normale")
-
-# Nodo-foglia richiesto
 G.add_node("mann_whitney", label="🧪 Mann-Whitney U test")
 
-# Connessioni aggiornate
+# Connessioni
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"),
@@ -33,12 +27,12 @@ edges = [
     ("tesi_2", "var_2_diff"),
     ("var_2_eq", "norm_2_eq_yes"),
     ("var_2_eq", "norm_2_eq_no"),
-    ("norm_2_eq_no", "mann_whitney")  # ← connessione aggiornata
+    ("var_2_diff", "norm_2_eq_no"),       # 🔁 Connessione aggiunta al nodo condiviso
+    ("norm_2_eq_no", "mann_whitney")      # ✅ Nodo-foglia comune
 ]
-
 G.add_edges_from(edges)
 
-# Posizionamento nodi per layout dall'alto verso il basso
+# Posizionamento nodi
 pos = {
     "xlsx": (0, 5),
     "num_tesi": (0, 4),
@@ -58,7 +52,7 @@ labels = nx.get_node_attributes(G, 'label')
 plt.figure(figsize=(10, 6))
 nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3000, arrows=True, edge_color="gray")
 nx.draw_networkx_labels(G, pos, labels=labels, font_size=8, font_weight="bold")
-plt.title("📌 Nodo-Foglia aggiornato: Mann-Whitney U test", fontsize=12)
+plt.title("📌 Nodo condiviso: 'Almeno una Non Normale' → Mann-Whitney U test", fontsize=12)
 plt.axis('off')
 plt.tight_layout()
 st.pyplot(plt)
