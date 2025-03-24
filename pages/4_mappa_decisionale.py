@@ -7,13 +7,13 @@ st.markdown("<h3 style='text-align: center;'>📊 Mappa Decisionale – Selezion
 # Creazione del grafo
 G = nx.DiGraph()
 
-# Nodi principali
+# Nodi iniziali
 G.add_node("xlsx", label="📂 File .xlsx\nCaricato")
 G.add_node("num_tesi", label="🔍 Numero\ndelle tesi")
 G.add_node("tesi_2", label="📊 2 Tesi")
 G.add_node("tesi_gt2", label="📊 >2 Tesi")
 
-# Nodi varianze
+# Nodi confronto varianze
 G.add_node("var_2_eq", label="✅ Varianze\nUguali")
 G.add_node("var_2_diff", label="❌ Varianze\nDiverse")
 G.add_node("var_gt2_eq", label="✅ Varianze\nUguali")
@@ -22,9 +22,11 @@ G.add_node("var_gt2_diff", label="❌ Varianze\nDiverse")
 # Nodi normalità
 G.add_node("norm_2_eq_yes", label="✅ Tutte le\nDistribuzioni Normali")
 G.add_node("norm_2_eq_no", label="❌ Almeno una\nNon Normale")
+G.add_node("norm_gt2_diff_no", label="❌ Almeno una\nNon Normale")
 
-# Nodo foglia
+# Nodi foglia (test statistici)
 G.add_node("mann_whitney", label="🧪 Mann-Whitney U test")
+G.add_node("games_howell", label="🧪 Games-Howell test")
 
 # Connessioni
 edges = [
@@ -38,11 +40,13 @@ edges = [
     ("var_2_diff", "norm_2_eq_no"),
     ("norm_2_eq_no", "mann_whitney"),
     ("tesi_gt2", "var_gt2_eq"),
-    ("tesi_gt2", "var_gt2_diff")
+    ("tesi_gt2", "var_gt2_diff"),
+    ("var_gt2_diff", "norm_gt2_diff_no"),
+    ("norm_gt2_diff_no", "games_howell")
 ]
 G.add_edges_from(edges)
 
-# Posizionamento nodi
+# Posizionamento nodi (disposizione orizzontale)
 pos = {
     "xlsx": (0, 6),
     "num_tesi": (0, 5),
@@ -50,21 +54,23 @@ pos = {
     "tesi_gt2": (2, 4),
     "var_2_eq": (-2.5, 3),
     "var_2_diff": (-1.5, 3),
+    "var_gt2_eq": (1.5, 3),
+    "var_gt2_diff": (2.5, 3),
     "norm_2_eq_yes": (-3, 2),
     "norm_2_eq_no": (-2, 2),
+    "norm_gt2_diff_no": (2.5, 2),
     "mann_whitney": (-2, 1),
-    "var_gt2_eq": (1.5, 3),
-    "var_gt2_diff": (2.5, 3)
+    "games_howell": (2.5, 1)
 }
 
-# Etichette visive
+# Etichette
 labels = nx.get_node_attributes(G, 'label')
 
 # Disegno del grafo
-plt.figure(figsize=(12, 7))
-nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3000, arrows=True, edge_color="gray")
+plt.figure(figsize=(13, 7))
+nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3000, arrows=True, edge_color="gray", width=1.5)
 nx.draw_networkx_labels(G, pos, labels=labels, font_size=8, font_weight="bold")
-plt.title("📌 Aggiunto confronto varianze per tesi > 2", fontsize=12)
+plt.title("📌 Nodo-foglia 'Games-Howell test' per >2 tesi, varianze diverse e non normalità", fontsize=12)
 plt.axis('off')
 plt.tight_layout()
 st.pyplot(plt)
