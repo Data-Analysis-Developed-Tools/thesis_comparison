@@ -26,8 +26,7 @@ G.add_node("norm_gt2_diff_no", label="❌ Almeno una\nNon Normale")
 
 # Nodi test
 G.add_node("mann_whitney", label="🧪 Mann-Whitney U test")
-G.add_node("kruskal_wallis", label="🧪 Kruskal-Wallis test")
-G.add_node("dunn_bonferroni", label="🧪 Dunn test\n(+ Bonferroni)")
+G.add_node("games_howell", label="🧪 Games-Howell test")
 
 # Connessioni
 edges = [
@@ -43,8 +42,7 @@ edges = [
     ("tesi_gt2", "var_gt2_eq"),
     ("tesi_gt2", "var_gt2_diff"),
     ("var_gt2_diff", "norm_gt2_diff_no"),
-    ("norm_gt2_diff_no", "kruskal_wallis"),
-    ("kruskal_wallis", "dunn_bonferroni")
+    ("norm_gt2_diff_no", "games_howell")
 ]
 G.add_edges_from(edges)
 
@@ -52,28 +50,28 @@ G.add_edges_from(edges)
 pos = {
     "xlsx": (0, 6),
     "num_tesi": (0, 5),
-    "tesi_2": (-3, 4),
-    "tesi_gt2": (3, 4),
-    "var_2_eq": (-3.5, 3),
-    "var_2_diff": (-2.5, 3),
-    "norm_2_eq_yes": (-4.2, 2),
-    "norm_2_eq_no": (-3.2, 2),
-    "mann_whitney": (-3.2, 1),
-    "var_gt2_eq": (2.5, 3),
-    "var_gt2_diff": (3.5, 3),
-    "norm_gt2_diff_no": (3.5, 2),
-    "kruskal_wallis": (3.5, 1),
-    "dunn_bonferroni": (3.5, 0)
+    "tesi_2": (-2, 4),
+    "tesi_gt2": (2, 4),
+    "var_2_eq": (-2.5, 3),
+    "var_2_diff": (-1.5, 3),
+    "norm_2_eq_yes": (-3, 2),
+    "norm_2_eq_no": (-2, 2),
+    "mann_whitney": (-2, 1),
+    "var_gt2_eq": (1.5, 3),
+    "var_gt2_diff": (2.5, 3),
+    "norm_gt2_diff_no": (2.5, 2),
+    "games_howell": (2.5, 1)
 }
 
 # Etichette
 labels = nx.get_node_attributes(G, 'label')
 
 # Disegno del grafo
-plt.figure(figsize=(13, 8))
+plt.figure(figsize=(13, 7))
 nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3200, arrows=True, edge_color="gray", width=1.5)
 nx.draw_networkx_labels(G, pos, labels=labels, font_size=8.5, font_weight="bold")
-plt.title("📌 Mappa Decisionale – Inclusi Kruskal-Wallis e Dunn + Bonferroni", fontsize=12)
+plt.title("📌 Mappa Decisionale – Versione ripristinata", fontsize=12)
 plt.axis('off')
 plt.tight_layout()
 st.pyplot(plt)
+
