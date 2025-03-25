@@ -1,11 +1,11 @@
-# Rilanciamo il codice dopo il reset dello stato di esecuzione
+# ✅ Versione stabile di 4 versioni fa della mappa decisionale (verificata funzionante)
 
 import networkx as nx
 import matplotlib.pyplot as plt
 
 G = nx.DiGraph()
 
-# Etichette dei nodi (italiano semplice)
+# Etichette dei nodi in italiano semplice
 nodi = {
     "xlsx": "File .xlsx caricato",
     "num_tesi": "Numero delle tesi",
@@ -37,7 +37,7 @@ nodi = {
 for nodo, label in nodi.items():
     G.add_node(nodo, label=label)
 
-# Connessioni
+# Connessioni tra i nodi
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"), ("num_tesi", "tesi_gt2"),
@@ -60,7 +60,7 @@ edges = [
 ]
 G.add_edges_from(edges)
 
-# Layout
+# Layout dei nodi
 pos = {
     "xlsx": (0, 10), "num_tesi": (0, 9),
     "tesi_2": (-6, 8), "tesi_gt2": (6, 8),
@@ -79,7 +79,7 @@ pos = {
     "kruskal_test": (7.5, 5), "dunn_test": (7.5, 4)
 }
 
-# Disegno
+# Visualizzazione del grafo
 plt.figure(figsize=(20, 13))
 nx.draw(
     G, pos,
@@ -94,6 +94,6 @@ nx.draw(
 )
 nx.draw_networkx_labels(G, pos, labels=nx.get_node_attributes(G, 'label'),
                         font_size=9, font_weight="bold")
-plt.title("Mappa Decisionale - Versione Recuperata", fontsize=14)
+plt.title("Mappa Decisionale - Versione Ripristinata", fontsize=14)
 plt.axis('off')
 plt.show()
