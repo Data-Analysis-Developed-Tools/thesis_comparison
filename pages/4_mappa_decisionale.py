@@ -67,8 +67,9 @@ edges = [
 
     ("var_gt2_eq", "norm_gt2_eq_yes"),
     ("norm_gt2_eq_yes", "bilanciamento_ok"),
-    ("bilanciamento_ok", "anova_test"),
-    ("anova_test", "tukey_hsd")
+    ("bilanciamento_ok", "anova_test"),       # risposta SÌ → ANOVA
+    ("anova_test", "tukey_hsd"),
+    ("bilanciamento_ok", "welch_anova")       # risposta NO → Welch ANOVA (già presente)
 ]
 G.add_edges_from(edges)
 
@@ -93,12 +94,12 @@ pos = {
 
     "norm_gt2_eq_yes": (4.5, 3),
     "bilanciamento_ok": (4.5, 2),
-    "anova_test": (4.5, 1),
-    "tukey_hsd": (4.5, 0),
+    "anova_test": (4.2, 1),
+    "tukey_hsd": (4.2, 0),
 
     "norm_gt2_diff_no": (5.2, 3),
     "norm_gt2_diff_yes": (5.8, 3),
-    "welch_anova": (5.8, 2),
+    "welch_anova": (5.5, 2),
     "games_howell": (5.5, 1)
 }
 
@@ -109,7 +110,7 @@ labels = nx.get_node_attributes(G, 'label')
 plt.figure(figsize=(16, 10))
 nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3200, arrows=True, edge_color="gray", width=1.5)
 nx.draw_networkx_labels(G, pos, labels=labels, font_size=8.5, font_weight="bold")
-plt.title("📌 Mappa Decisionale – ANOVA e Tukey HSD per casi bilanciati", fontsize=12)
+plt.title("📌 Mappa Decisionale – ANOVA vs Welch ANOVA secondo bilanciamento", fontsize=12)
 plt.axis('off')
 plt.tight_layout()
 st.pyplot(plt)
