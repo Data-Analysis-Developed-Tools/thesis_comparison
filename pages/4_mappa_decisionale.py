@@ -18,7 +18,6 @@ nodi = {
 
     "norm_2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
     "norm_2_eq_no": "❌ Almeno una\nNon Normale",
-    "norm_2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
 
     "norm_gt2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
     "norm_gt2_eq_no": "❌ Almeno una\nNon Normale",
@@ -60,20 +59,16 @@ edges = [
 
     ("var_2_eq", "norm_2_eq_yes"),
     ("var_2_eq", "norm_2_eq_no"),
-
-    ("var_2_diff", "norm_2_diff_yes"),
-    ("var_2_diff", "norm_2_eq_no"),  # condivisione nel caso non normali
+    ("var_2_diff", "norm_2_eq_no"),  # condiviso se almeno una non normale
 
     # caso tutte normali e varianze uguali
     ("norm_2_eq_yes", "bilanciamento_2"),
     ("bilanciamento_2", "student_t"),
     ("bilanciamento_2", "welch_t"),
 
-    # caso tutte normali e varianze diverse
-    ("norm_2_diff_yes", "welch_t"),
-
     # almeno una non normale (qualsiasi varianza)
     ("norm_2_eq_no", "mann_whitney"),
+    ("var_2_diff", "welch_t"),  # caso tutte normali e varianze diverse
 
     # --- Tesi > 2 ---
     ("tesi_gt2", "var_gt2_eq"),
@@ -84,8 +79,8 @@ edges = [
 
     ("norm_gt2_eq_yes", "bilanciamento_gt2"),
     ("bilanciamento_gt2", "anova_test"),
-    ("bilanciamento_gt2", "welch_anova"),
     ("anova_test", "tukey_hsd"),
+    ("bilanciamento_gt2", "welch_anova"),
 
     ("norm_gt2_eq_no", "kruskal_test"),
     ("kruskal_test", "dunn_test"),
@@ -109,9 +104,8 @@ pos = {
     # Tesi = 2
     "var_2_eq": (-7, 7), "var_2_diff": (-5, 7),
     "norm_2_eq_yes": (-7.5, 6), "norm_2_eq_no": (-6, 6),
-    "norm_2_diff_yes": (-5, 6),
     "bilanciamento_2": (-7.5, 5),
-    "student_t": (-8, 4), "welch_t": (-6.5, 4),
+    "student_t": (-8, 4), "welch_t": (-7, 4),
     "mann_whitney": (-6, 4),
 
     # Tesi > 2
