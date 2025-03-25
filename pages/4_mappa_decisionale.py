@@ -50,10 +50,13 @@ edges = [
 
     ("tesi_2", "var_2_eq"),
     ("tesi_2", "var_2_diff"),
+
     ("var_2_eq", "norm_2_eq_yes"),
     ("var_2_eq", "norm_2_eq_no"),
     ("var_2_diff", "norm_2_eq_no"),
+    ("var_2_diff", "welch_t"),  # nuovo collegamento
     ("norm_2_eq_no", "mann_whitney"),
+
     ("norm_2_eq_yes", "bilanciamento_2"),
     ("bilanciamento_2", "student_t"),
     ("bilanciamento_2", "welch_t"),
@@ -117,7 +120,7 @@ labels = nx.get_node_attributes(G, 'label')
 plt.figure(figsize=(17, 10))
 nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3200, arrows=True, edge_color="gray", width=1.5)
 nx.draw_networkx_labels(G, pos, labels=labels, font_size=8.5, font_weight="bold")
-plt.title("📌 Mappa Decisionale – t-test di Student o di Welch per 2 tesi", fontsize=12)
+plt.title("📌 Mappa Decisionale – Connessione a t-test di Welch completata", fontsize=12)
 plt.axis('off')
 plt.tight_layout()
 st.pyplot(plt)
