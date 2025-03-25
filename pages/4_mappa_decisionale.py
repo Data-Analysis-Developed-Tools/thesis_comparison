@@ -1,43 +1,50 @@
-# ✅ Versione stabile di 4 versioni fa della mappa decisionale (verificata funzionante)
-
 import networkx as nx
 import matplotlib.pyplot as plt
 
+# Crea il grafo diretto
 G = nx.DiGraph()
 
-# Etichette dei nodi in italiano semplice
+# Etichette dei nodi
 nodi = {
-    "xlsx": "File .xlsx caricato",
-    "num_tesi": "Numero delle tesi",
-    "tesi_2": "2 tesi",
-    "tesi_gt2": ">2 tesi",
-    "var_2_eq": "Varianze uguali",
-    "var_2_diff": "Varianze diverse",
-    "var_gt2_eq": "Varianze uguali",
-    "var_gt2_diff": "Varianze diverse",
-    "norm_2_eq_yes": "Tutte distribuzioni normali",
-    "norm_2_eq_no": "Almeno una non normale",
-    "norm_2_diff_yes": "Tutte distribuzioni normali",
-    "norm_gt2_eq_yes": "Tutte distribuzioni normali",
-    "norm_gt2_eq_no": "Almeno una non normale",
-    "norm_gt2_diff_yes": "Tutte distribuzioni normali",
-    "norm_gt2_diff_no": "Almeno una non normale",
-    "bilanciamento_2": "Bilanciamento osservazioni?",
-    "bilanciamento_gt2": "Bilanciamento osservazioni?",
-    "student_t": "t-test di Student",
-    "welch_t": "t-test di Welch",
-    "mann_whitney": "Mann-Whitney U",
-    "anova_test": "ANOVA",
-    "tukey_hsd": "Tukey HSD",
-    "welch_anova": "Welch ANOVA",
-    "games_howell": "Games-Howell",
-    "kruskal_test": "Kruskal-Wallis",
-    "dunn_test": "Dunn + Bonferroni"
-}
-for nodo, label in nodi.items():
-    G.add_node(nodo, label=label)
+    "xlsx": "📂 File .xlsx\nCaricato",
+    "num_tesi": "🔍 Numero\ndelle tesi",
+    "tesi_2": "📊 2 Tesi",
+    "tesi_gt2": "📊 >2 Tesi",
 
-# Connessioni tra i nodi
+    "var_2_eq": "✅ Varianze\nUguali",
+    "var_2_diff": "❌ Varianze\nDiverse",
+    "var_gt2_eq": "✅ Varianze\nUguali",
+    "var_gt2_diff": "❌ Varianze\nDiverse",
+
+    "norm_2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
+    "norm_2_eq_no": "❌ Almeno una\nNon Normale",
+    "norm_2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
+
+    "norm_gt2_eq_yes": "✅ Tutte le\nDistribuzioni Normali",
+    "norm_gt2_eq_no": "❌ Almeno una\nNon Normale",
+    "norm_gt2_diff_yes": "✅ Tutte le\nDistribuzioni Normali",
+    "norm_gt2_diff_no": "❌ Almeno una\nNon Normale",
+
+    "bilanciamento_2": "⚖️ Bilanciamento\nnumerosità tesi?",
+    "bilanciamento_gt2": "⚖️ Bilanciamento\nnumerosità tesi?",
+
+    # TEST STATISTICI
+    "student_t": "🧪 t-test di Student",
+    "welch_t": "🧪 t-test di Welch",
+    "mann_whitney": "🧪 Mann-Whitney U test",
+    "anova_test": "🧪 ANOVA test",
+    "tukey_hsd": "🧪 Tukey HSD test",
+    "welch_anova": "🧪 Welch ANOVA test",
+    "games_howell": "🧪 Games-Howell test",
+    "kruskal_test": "🧪 Kruskal-Wallis test",
+    "dunn_test": "🧪 Dunn test\n(+ Bonferroni)"
+}
+
+# Aggiunta nodi
+for nodo, etichetta in nodi.items():
+    G.add_node(nodo, label=etichetta)
+
+# Connessioni
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"), ("num_tesi", "tesi_gt2"),
@@ -48,6 +55,7 @@ edges = [
     ("bilanciamento_2", "student_t"), ("bilanciamento_2", "welch_t"),
     ("norm_2_diff_yes", "welch_t"),
     ("norm_2_eq_no", "mann_whitney"),
+
     ("tesi_gt2", "var_gt2_eq"), ("tesi_gt2", "var_gt2_diff"),
     ("var_gt2_eq", "norm_gt2_eq_yes"), ("var_gt2_eq", "norm_gt2_eq_no"),
     ("norm_gt2_eq_yes", "bilanciamento_gt2"),
@@ -60,7 +68,7 @@ edges = [
 ]
 G.add_edges_from(edges)
 
-# Layout dei nodi
+# Posizione dei nodi
 pos = {
     "xlsx": (0, 10), "num_tesi": (0, 9),
     "tesi_2": (-6, 8), "tesi_gt2": (6, 8),
@@ -70,6 +78,7 @@ pos = {
     "bilanciamento_2": (-7.5, 5),
     "student_t": (-8, 4), "welch_t": (-6.5, 4),
     "mann_whitney": (-6, 4),
+
     "var_gt2_eq": (5, 7), "var_gt2_diff": (7, 7),
     "norm_gt2_eq_yes": (4.8, 6), "norm_gt2_eq_no": (5.8, 6),
     "norm_gt2_diff_yes": (6.8, 6), "norm_gt2_diff_no": (7.5, 6),
@@ -79,7 +88,7 @@ pos = {
     "kruskal_test": (7.5, 5), "dunn_test": (7.5, 4)
 }
 
-# Visualizzazione del grafo
+# Disegno
 plt.figure(figsize=(20, 13))
 nx.draw(
     G, pos,
@@ -94,6 +103,7 @@ nx.draw(
 )
 nx.draw_networkx_labels(G, pos, labels=nx.get_node_attributes(G, 'label'),
                         font_size=9, font_weight="bold")
-plt.title("Mappa Decisionale - Versione Ripristinata", fontsize=14)
+plt.title("Mappa Decisionale per la Scelta del Test Statistico", fontsize=14)
 plt.axis('off')
+plt.tight_layout()
 plt.show()
