@@ -1,45 +1,43 @@
-# Ricreiamo il grafo senza emoji e con etichette in italiano semplice
+# Rilanciamo il codice dopo il reset dello stato di esecuzione
 
 import networkx as nx
 import matplotlib.pyplot as plt
 
 G = nx.DiGraph()
 
-# Etichette dei nodi
+# Etichette dei nodi (italiano semplice)
 nodi = {
-    "xlsx": "File Excel caricato",
+    "xlsx": "File .xlsx caricato",
     "num_tesi": "Numero delle tesi",
-    "tesi_2": "2 Tesi",
-    "tesi_gt2": ">2 Tesi",
+    "tesi_2": "2 tesi",
+    "tesi_gt2": ">2 tesi",
     "var_2_eq": "Varianze uguali",
     "var_2_diff": "Varianze diverse",
     "var_gt2_eq": "Varianze uguali",
     "var_gt2_diff": "Varianze diverse",
-    "norm_2_eq_yes": "Tutte le distribuzioni normali",
-    "norm_2_eq_no": "Almeno una distribuzione non normale",
-    "norm_2_diff_yes": "Tutte le distribuzioni normali",
-    "norm_gt2_eq_yes": "Tutte le distribuzioni normali",
-    "norm_gt2_eq_no": "Almeno una distribuzione non normale",
-    "norm_gt2_diff_yes": "Tutte le distribuzioni normali",
-    "norm_gt2_diff_no": "Almeno una distribuzione non normale",
-    "bilanciamento_2": "Numerosità bilanciate?",
-    "bilanciamento_gt2": "Numerosità bilanciate?",
+    "norm_2_eq_yes": "Tutte distribuzioni normali",
+    "norm_2_eq_no": "Almeno una non normale",
+    "norm_2_diff_yes": "Tutte distribuzioni normali",
+    "norm_gt2_eq_yes": "Tutte distribuzioni normali",
+    "norm_gt2_eq_no": "Almeno una non normale",
+    "norm_gt2_diff_yes": "Tutte distribuzioni normali",
+    "norm_gt2_diff_no": "Almeno una non normale",
+    "bilanciamento_2": "Bilanciamento osservazioni?",
+    "bilanciamento_gt2": "Bilanciamento osservazioni?",
     "student_t": "t-test di Student",
     "welch_t": "t-test di Welch",
-    "mann_whitney": "Mann-Whitney U test",
+    "mann_whitney": "Mann-Whitney U",
     "anova_test": "ANOVA",
     "tukey_hsd": "Tukey HSD",
     "welch_anova": "Welch ANOVA",
     "games_howell": "Games-Howell",
     "kruskal_test": "Kruskal-Wallis",
-    "dunn_test": "Dunn con Bonferroni"
+    "dunn_test": "Dunn + Bonferroni"
 }
-
-# Aggiungi nodi
 for nodo, label in nodi.items():
     G.add_node(nodo, label=label)
 
-# Connessioni (archi)
+# Connessioni
 edges = [
     ("xlsx", "num_tesi"),
     ("num_tesi", "tesi_2"), ("num_tesi", "tesi_gt2"),
@@ -62,7 +60,7 @@ edges = [
 ]
 G.add_edges_from(edges)
 
-# Posizioni dei nodi
+# Layout
 pos = {
     "xlsx": (0, 10), "num_tesi": (0, 9),
     "tesi_2": (-6, 8), "tesi_gt2": (6, 8),
@@ -81,7 +79,7 @@ pos = {
     "kruskal_test": (7.5, 5), "dunn_test": (7.5, 4)
 }
 
-# Disegna il grafo
+# Disegno
 plt.figure(figsize=(20, 13))
 nx.draw(
     G, pos,
@@ -96,6 +94,6 @@ nx.draw(
 )
 nx.draw_networkx_labels(G, pos, labels=nx.get_node_attributes(G, 'label'),
                         font_size=9, font_weight="bold")
-plt.title("Mappa Decisionale per la Scelta del Test Statistico", fontsize=14)
+plt.title("Mappa Decisionale - Versione Recuperata", fontsize=14)
 plt.axis('off')
 plt.show()
