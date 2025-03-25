@@ -27,12 +27,13 @@ G.add_node("norm_gt2_diff_yes", label="✅ Tutte le\nDistribuzioni Normali")
 G.add_node("norm_gt2_eq_no", label="❌ Almeno una\nNon Normale")
 G.add_node("norm_gt2_eq_yes", label="✅ Tutte le\nDistribuzioni Normali")
 
-# Nodo controllo bilanciamento
+# Nodi bilanciamento
 G.add_node("bilanciamento_2", label="⚖️ Osservazioni\nbilanciate?")
 G.add_node("bilanciamento_gt2", label="⚖️ Osservazioni\nbilanciate?")
 
 # Nodi test statistici
 G.add_node("student_t", label="🧪 t-test di Student")
+G.add_node("welch_t", label="🧪 t-test di Welch")
 G.add_node("mann_whitney", label="🧪 Mann-Whitney U test")
 G.add_node("welch_anova", label="🧪 Welch ANOVA test")
 G.add_node("games_howell", label="🧪 Games-Howell test")
@@ -55,6 +56,7 @@ edges = [
     ("norm_2_eq_no", "mann_whitney"),
     ("norm_2_eq_yes", "bilanciamento_2"),
     ("bilanciamento_2", "student_t"),
+    ("bilanciamento_2", "welch_t"),
 
     ("tesi_gt2", "var_gt2_eq"),
     ("tesi_gt2", "var_gt2_diff"),
@@ -89,7 +91,8 @@ pos = {
     "norm_2_eq_yes": (-6, 4),
     "norm_2_eq_no": (-5, 4),
     "bilanciamento_2": (-6, 3),
-    "student_t": (-6, 2),
+    "student_t": (-6.5, 2),
+    "welch_t": (-5.5, 2),
     "mann_whitney": (-5, 2),
 
     "var_gt2_eq": (4.5, 5),
@@ -114,7 +117,7 @@ labels = nx.get_node_attributes(G, 'label')
 plt.figure(figsize=(17, 10))
 nx.draw(G, pos, with_labels=False, node_color="lightgray", node_size=3200, arrows=True, edge_color="gray", width=1.5)
 nx.draw_networkx_labels(G, pos, labels=labels, font_size=8.5, font_weight="bold")
-plt.title("📌 Mappa Decisionale – Aggiunto t-test di Student per 2 tesi bilanciate", fontsize=12)
+plt.title("📌 Mappa Decisionale – t-test di Student o di Welch per 2 tesi", fontsize=12)
 plt.axis('off')
 plt.tight_layout()
 st.pyplot(plt)
